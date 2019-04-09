@@ -102,7 +102,7 @@ steps:
       - CHART_REF=example-voting-app
       - CHART_REPO_URL=cm://h.cfcr.io/${{CF_ACCOUNT}}/default
       - CHART_VERSION=${{CF_RELEASE_TAG}}
-      - RELEASE_NAME=staging-example-voting-app
+      - RELEASE_NAME=kristofers-staging-example-voting-app
       - KUBE_CONTEXT=${{KUBE_CONTEXT}}
       - NAMESPACE=${{KUBE_NAMESPACE}}
       - DEBUG_CHART=true
@@ -130,7 +130,7 @@ steps:
     title: Running DVTS on Staging Release
     image: 'codefresh/cli:latest'
     commands:
-      - codefresh run ${{CF_REPO_OWNER}}/example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='staging-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:master-${{CF_SHORT_REVISION}}'
+      - codefresh run ${{CF_REPO_OWNER}}/example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='kristofers-staging-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:master-${{CF_SHORT_REVISION}}'
     when:
       condition:
         any:
@@ -153,7 +153,7 @@ steps:
       - CHART_REF=example-voting-app
       - CHART_REPO_URL=cm://h.cfcr.io/${{CF_ACCOUNT}}/default
       - CHART_VERSION=${{CF_RELEASE_TAG}}
-      - RELEASE_NAME=production-example-voting-app
+      - RELEASE_NAME=kristofers-production-example-voting-app
       - KUBE_CONTEXT=${{KUBE_CONTEXT}}
       - NAMESPACE=${{KUBE_NAMESPACE}}
       - DEBUG_CHART=true
@@ -182,7 +182,7 @@ steps:
     title: Running DVTS on Production Release
     image: 'codefresh/cli:latest'
     commands:
-      - codefresh run ${{CF_REPO_OWNER}}/example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='production-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:master-${{CF_SHORT_REVISION}}'
+      - codefresh run ${{CF_REPO_OWNER}}/example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='kristofers-production-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:master-${{CF_SHORT_REVISION}}'
     when:
       condition:
         all:
