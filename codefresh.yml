@@ -43,13 +43,13 @@ steps:
       - "${{CF_BRANCH_TAG_NORMALIZED}}"
       - "${{CF_REVISION}}"
     scale:
-      vote:
+      pushVote:
         image_name: "DevopSherpas/example-voting-app-vote"
         candidate: "${{vote}}"
-      result:
+      pushResult:
         image_name: "DevopSherpas/example-voting-app-result"
         candidate: "${{result}}"
-      worker:
+      pushWorker:
         image_name: "DevopSherpas/example-voting-app-worker"
         candidate: "${{worker}}"
     stage: "push"
