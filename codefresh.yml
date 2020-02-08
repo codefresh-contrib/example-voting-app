@@ -44,7 +44,6 @@ steps:
     registry: "cfcr"
     tags:
       - "${{CF_BRANCH_TAG_NORMALIZED}}"
-      - "latest"
     scale:
       pushVote:
         title: "Pushing vote image to cfcr"
