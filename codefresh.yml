@@ -35,24 +35,21 @@ steps:
         only:
           - "master"
     stage: "push"
-  parallel_push:
-    type: "parallel"
-    steps:
-      push:
-        title: "Pushing image to cfcr"
-        type: "push"
-        registry: "cfcr"
-        tags:
-          - "${{CF_BRANCH_TAG_NORMALIZED}}"
-          - "${{CF_REVISION}}"
-        scale:
-          vote:
-            image_name: "DevopSherpas/example-voting-app-vote"
-            candidate: "${{vote}}"
-          result:
-            image_name: "DevopSherpas/example-voting-app-result"
-            candidate: "${{result}}"
-          worker:
-            image_name: "DevopSherpas/example-voting-app-worker"
-            candidate: "${{worker}}"
+  push:
+    title: "Pushing image to cfcr"
+    type: "push"
+    registry: "cfcr"
+    tags:
+      - "${{CF_BRANCH_TAG_NORMALIZED}}"
+      - "${{CF_REVISION}}"
+    scale:
+      vote:
+        image_name: "DevopSherpas/example-voting-app-vote"
+        candidate: "${{vote}}"
+      result:
+        image_name: "DevopSherpas/example-voting-app-result"
+        candidate: "${{result}}"
+      worker:
+        image_name: "DevopSherpas/example-voting-app-worker"
+        candidate: "${{worker}}"
     stage: "push"
