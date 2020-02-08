@@ -21,18 +21,18 @@ steps:
       voteImage:
         working_directory: "vote"
         title: "Building vote Image"
-        image_name: "example-voting-app-vote"
+        image_name: "example-voting-app/vote"
       testImage:
         working_directory: "tests"
         title: "Building test Image"
-        image_name: "example-voting-app-test"
+        image_name: "example-voting-app/test"
       resultImage:
         working_directory: "result"
-        image_name: "example-voting-app-result"
+        image_name: "example-voting-app/result"
         title: "Building result Image"
       workerImage:
         working_directory: "worker"
-        image_name: "example-voting-app-worker"
+        image_name: "example-voting-app/worker"
         title: "Building worker Image"
   approval_for_push:
     type: "pending-approval"
@@ -51,18 +51,18 @@ steps:
     scale:
       pushVote:
         title: "Pushing vote image to cfcr"
-        image_name: "DevopSherpas/example-voting-app-vote"
+        image_name: "example-voting-app/vote"
         candidate: "${{voteImage}}"
       pushResult:
         title: "Pushing result image to cfcr"
-        image_name: "DevopSherpas/example-voting-app-result"
+        image_name: "example-voting-app/result"
         candidate: "${{resultImage}}"
       pushWorker:
         title: "Pushing worker image to cfcr"
-        image_name: "DevopSherpas/example-voting-app-worker"
+        image_name: "example-voting-app/worker"
         candidate: "${{workerImage}}"
       pushTest:
         title: "Pushing test image to cfcr"
-        image_name: "DevopSherpas/example-voting-app-test"
+        image_name: "example-voting-app/test"
         candidate: "${{testImage}}"
     stage: "push"
