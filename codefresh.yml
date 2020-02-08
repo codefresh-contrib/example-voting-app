@@ -19,13 +19,13 @@ steps:
     stage: "build"
     scale:
       vote:
-        working_directory: "${{clone}}/vote"
+        working_directory: "vote"
         image_name: "DevopSherpas/example-voting-app-vote"
       result:
-        working_directory: "${{clone}}/result"
+        working_directory: "result"
         image_name: "DevopSherpas/example-voting-app-result"
       worker:
-        working_directory: "${{clone}}/worker"
+        working_directory: "worker"
         image_name: "DevopSherpas/example-voting-app-worker"
   approval_for_push:
     type: "pending-approval"
