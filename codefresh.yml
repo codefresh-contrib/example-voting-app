@@ -20,13 +20,16 @@ steps:
     scale:
       vote:
         working_directory: "vote"
+        title: "Building vote Image"
         image_name: "DevopSherpas/example-voting-app-vote"
       result:
         working_directory: "result"
         image_name: "DevopSherpas/example-voting-app-result"
+        title: "Building result Image"
       worker:
         working_directory: "worker"
         image_name: "DevopSherpas/example-voting-app-worker"
+        title: "Building worker Image"
   approval_for_push:
     type: "pending-approval"
     title: "Should we run push"
@@ -41,15 +44,18 @@ steps:
     registry: "cfcr"
     tags:
       - "${{CF_BRANCH_TAG_NORMALIZED}}"
-      - "${{CF_REVISION}}"
+      - "${{CF_SHORT_REVISION}}"
     scale:
       pushVote:
+        title: "Pushing vote image to cfcr"
         image_name: "DevopSherpas/example-voting-app-vote"
         candidate: "${{vote}}"
       pushResult:
+        title: "Pushing result image to cfcr"
         image_name: "DevopSherpas/example-voting-app-result"
         candidate: "${{result}}"
       pushWorker:
+        title: "Pushing worker image to cfcr"
         image_name: "DevopSherpas/example-voting-app-worker"
         candidate: "${{worker}}"
     stage: "push"
