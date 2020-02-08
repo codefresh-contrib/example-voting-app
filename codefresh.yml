@@ -25,7 +25,7 @@ steps:
         working_directory: "${{clone}}/result"
         image_name: "DevopSherpas/example-voting-app-result"
       worker:
-        working_directore: "${{clone}}/worker"
+        working_directory: "${{clone}}/worker"
         image_name: "DevopSherpas/example-voting-app-worker"
   approval_for_push:
     type: "pending-approval"
