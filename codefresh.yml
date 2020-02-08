@@ -38,28 +38,6 @@ steps:
   parallel_push:
     type: "parallel"
     steps:
-      annotate_build:
-        title: "Annotating Build"
-        working_directory: "IMAGE_WORK_DIR"
-        commands:
-          - "echo Annotating Build..."
-        on_success:
-          metadata:
-            set:
-              - ${{build.imageId}}:
-                  - CF_QUALITY: true
-        on_error:
-          metadata:
-            set:
-              - ${{build.imageId}}:
-                  - CF_QUALITY: false
-        scale:
-          vote:
-            image: "${{vote}}"
-          result:
-            image: "${{result}}"
-          worker:
-            image: "${{worker}}"
       push:
         title: "Pushing image to cfcr"
         type: "push"
