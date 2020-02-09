@@ -44,23 +44,33 @@ steps:
           - "master"
     stage: "push"
   push:
-    title: "Pushing image to cfcr"
-    type: "push"
-    registry: "cfcr"
-    tags:
-      - "${{CF_BRANCH_TAG_NORMALIZED}}"
-      - "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
-    scale:
-      pushVote:
-        title: "Pushing vote image to cfcr"
-        candidate: '${{voteImage}}'
-      pushResult:
-        title: "Pushing result image to cfcr"
-        candidate: '${{resultImage}}'
-      pushWorker:
-        title: "Pushing worker image to cfcr"
-        candidate: '${{workerImage}}'
-      pushTest:
-        title: "Pushing test image to cfcr"
-        candidate: '${{testImage}}'
-    stage: "push"
+    type: parallel
+    stage: 'push'
+    steps:
+      PushDockerContainers:
+        title: "Pushing image to cfcr"
+        type: "push"
+        registry: "cfcr"
+        tags:
+          - "${{CF_BRANCH_TAG_NORMALIZED}}"
+          - "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
+        scale:
+          pushVote:
+            title: "Pushing vote image to cfcr"
+            candidate: '${{voteImage}}'
+          pushResult:
+            title: "Pushing result image to cfcr"
+            candidate: '${{resultImage}}'
+          pushWorker:
+            title: "Pushing worker image to cfcr"
+            candidate: '${{workerImage}}'
+          pushTest:
+            title: "Pushing test image to cfcr"
+            candidate: '${{testImage}}'
+      UpdateHelmChart:
+          title: push chart for example-voting-app
+          image: codefresh/cfstep-helm:2.9.0
+          environment:
+            - ACTION=push
+            - CHART_REF=example-voting-app
+
