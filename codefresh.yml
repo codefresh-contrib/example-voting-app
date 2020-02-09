@@ -65,9 +65,9 @@ steps:
         title: "Pushing test image to cfcr"
         candidate: '${{testImage}}'
   UpdateHelmChart:
-      title: push chart for example-voting-app
-      image: codefresh/cfstep-helm:2.9.0
-      environment:
-        - ACTION=push
-        - CHART_REF=example-voting-app
-
+    stage: 'push'
+    title: push chart for example-voting-app
+    image: codefresh/cfstep-helm:2.9.0
+    environment:
+      - ACTION=push
+      - CHART_REF=example-voting-app
