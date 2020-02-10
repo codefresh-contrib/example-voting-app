@@ -52,6 +52,7 @@ steps:
   AquaSecurityScan:
     type: aqua
     stage: 'test'
+    fail_fast: false
     arguments:
       AQUA_HOST: '${{AQUA_HOST}}'
       AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
