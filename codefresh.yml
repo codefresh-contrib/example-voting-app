@@ -7,7 +7,7 @@ stages:
   - 'deploy'
 steps:
   main_clone:
-    type: "git-clone"
+    type: 'git-clone'
     description: 'Cloning main repository...'
     repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
     revision: "${{CF_BRANCH}}"
@@ -77,4 +77,23 @@ steps:
     environment:
       - ACTION=push
       - CHART_REF=example-voting-app
+  DeployToStaging:
+    stage: 'deploy'
+    image: 'codefresh/cfstep-helm:2.9.0'
+    environment:
+      - CHART_REF=example-voting-app
+      - RELEASE_NAME=example-staging
+      - KUBE_CONTEXT=staging-cluster
+      - VALUE_result_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/result
+      - VALUE_result_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+      - VALUE_vote_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/vote
+      - VALUE_vote_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+      - VALUE_worker_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/worker
+      - VALUE_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+    when:
+      branch:
+        only:
+          - 'master'
+
+
 
