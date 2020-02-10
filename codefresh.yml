@@ -43,6 +43,27 @@ steps:
       branch:
         only:
           - 'master'
+  push:
+    stage: 'push'
+    title: 'Pushing image to cfcr'
+    type: 'push'
+    registry: 'cfcr'
+    tags:
+      - "${{CF_BRANCH_TAG_NORMALIZED}}"
+      - "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
+    scale:
+      pushVote:
+        title: 'Pushing vote image to cfcr'
+        candidate: '${{voteImage}}'
+      pushResult:
+        title: 'Pushing result image to cfcr'
+        candidate: '${{resultImage}}'
+      pushWorker:
+        title: 'Pushing worker image to cfcr'
+        candidate: '${{workerImage}}'
+      pushTest:
+        title: 'Pushing test image to cfcr'
+        candidate: '${{testImage}}'
   lintHelmChart:
     stage: 'test'
     title: Linting Helm Chart
@@ -52,7 +73,7 @@ steps:
   AquaSecurityScan:
     type: aqua
     stage: 'test'
-    fail_fast: false
+    fail-fast: false
     arguments:
       AQUA_HOST: '${{AQUA_HOST}}'
       AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
@@ -76,27 +97,6 @@ steps:
         title: 'Scan test image to cfcr'
         arguments:
             IMAGE: '${{testImage}}'
-  push:
-    stage: 'push'
-    title: 'Pushing image to cfcr'
-    type: 'push'
-    registry: 'cfcr'
-    tags:
-      - "${{CF_BRANCH_TAG_NORMALIZED}}"
-      - "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
-    scale:
-      pushVote:
-        title: 'Pushing vote image to cfcr'
-        candidate: '${{voteImage}}'
-      pushResult:
-        title: 'Pushing result image to cfcr'
-        candidate: '${{resultImage}}'
-      pushWorker:
-        title: 'Pushing worker image to cfcr'
-        candidate: '${{workerImage}}'
-      pushTest:
-        title: 'Pushing test image to cfcr'
-        candidate: '${{testImage}}'
   PushHelmChart:
     stage: 'push'
     title: push chart for example-voting-app
