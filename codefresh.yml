@@ -1,68 +1,74 @@
 version: "1.0"
 stages:
-  - "clone"
-  - "build"
-  - "push"
-  - "deploy"
-  - "test"
+  - 'clone'
+  - 'build'
+  - 'test'
+  - 'push'
+  - 'deploy'
 steps:
   main_clone:
     type: "git-clone"
-    description: "Cloning main repository..."
+    description: 'Cloning main repository...'
     repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
     revision: "${{CF_BRANCH}}"
-    stage: "clone"
+    stage: 'clone'
   build:
-    title: "Building Docker Image"
-    type: "build"
+    title: 'Building Docker Image'
+    type: 'build'
     tag: "${{CF_BRANCH_TAG_NORMALIZED}}"
-    dockerfile: "Dockerfile"
-    stage: "build"
+    dockerfile: 'Dockerfile'
+    stage: 'build'
     scale:
       voteImage:
-        working_directory: "vote"
-        title: "Building vote Image"
-        image_name: "example-voting-app/vote"
+        working_directory: 'vote'
+        title: 'Building vote Image'
+        image_name: 'example-voting-app/vote'
       testImage:
-        working_directory: "tests"
-        title: "Building test Image"
-        image_name: "example-voting-app/test"
+        working_directory: 'tests'
+        title: 'Building test Image'
+        image_name: 'example-voting-app/test'
       resultImage:
-        working_directory: "result"
-        image_name: "example-voting-app/result"
-        title: "Building result Image"
+        working_directory: 'result'
+        image_name: 'example-voting-app/result'
+        title: 'Building result Image'
       workerImage:
-        working_directory: "worker"
-        image_name: "example-voting-app/worker"
-        title: "Building worker Image"
+        working_directory: 'worker'
+        image_name: 'example-voting-app/worker'
+        title: 'Building worker Image'
   approval_for_push:
-    type: "pending-approval"
-    title: "Should we run push"
+    type: 'pending-approval'
+    title: 'Should we run push'
+    stage: 'push'
     when:
       branch:
         only:
-          - "master"
-    stage: "push"
+          - 'master'
+  lintHelmChart:
+    stage: 'test'
+    title: Linting Helm Chart
+    image: codefresh/cfstep-helm
+    commands:
+      - bash -c 'cd example-voting-app && helm lint'
   push:
     stage: 'push'
-    title: "Pushing image to cfcr"
-    type: "push"
-    registry: "cfcr"
+    title: 'Pushing image to cfcr'
+    type: 'push'
+    registry: 'cfcr'
     tags:
       - "${{CF_BRANCH_TAG_NORMALIZED}}"
       - "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
     scale:
       pushVote:
-        title: "Pushing vote image to cfcr"
+        title: 'Pushing vote image to cfcr'
         candidate: '${{voteImage}}'
       pushResult:
-        title: "Pushing result image to cfcr"
+        title: 'Pushing result image to cfcr'
         candidate: '${{resultImage}}'
       pushWorker:
-        title: "Pushing worker image to cfcr"
+        title: 'Pushing worker image to cfcr'
         candidate: '${{workerImage}}'
       pushTest:
-        title: "Pushing test image to cfcr"
+        title: 'Pushing test image to cfcr'
         candidate: '${{testImage}}'
   PushHelmChart:
     stage: 'push'
@@ -71,3 +77,4 @@ steps:
     environment:
       - ACTION=push
       - CHART_REF=example-voting-app
+
