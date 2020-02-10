@@ -49,6 +49,32 @@ steps:
     image: codefresh/cfstep-helm
     commands:
       - bash -c 'cd example-voting-app && helm lint'
+  AquaSecurityScan:
+    type: aqua
+    stage: 'test'
+    arguments:
+      AQUA_HOST: '${{AQUA_HOST}}'
+      AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
+      AQUA_USERNAME: '${{AQUA_USERNAME}}'
+      IMAGE: '${{IMAGE}}'
+      TAG: '${{CF_BRANCH_TAG_NORMALIZED}}'
+    scale:
+      ScanVote:
+        title: 'Scan vote image'
+        arguments:
+            IMAGE: '${{voteImage}}'
+      ScanResult:
+        title: 'Scan result image to cfcr'
+        arguments:
+            IMAGE: '${{resultImage}}'
+      ScanWorker:
+        title: 'Scan worker image to cfcr'
+        arguments:
+            IMAGE: '${{workerImage}}'
+      ScanTest:
+        title: 'Scan test image to cfcr'
+        arguments:
+            IMAGE: '${{testImage}}'
   push:
     stage: 'push'
     title: 'Pushing image to cfcr'
@@ -94,6 +120,3 @@ steps:
       branch:
         only:
           - 'master'
-
-
-
