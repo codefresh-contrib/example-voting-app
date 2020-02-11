@@ -88,7 +88,7 @@ steps:
   AquaSecurityScan:
     type: aqua
     stage: 'test'
-    fail_fast: false
+    fail-fast: false
     arguments:
       AQUA_HOST: '${{AQUA_HOST}}'
       AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
@@ -97,23 +97,23 @@ steps:
       TAG: '${{CF_BRANCH_TAG_NORMALIZED}}'
     scale:
       ScanVote:
-        fail_fast: false
+        fail-fast: false
         title: 'Scan vote image'
         arguments:
             IMAGE: '${{voteImage}}'
       ScanResult:
-        fail_fast: false
+        fail-fast: false
         title: 'Scan result image to cfcr'
         arguments:
             IMAGE: '${{resultImage}}'
       ScanWorker:
-        fail_fast: false
+        fail-fast: false
         title: 'Scan worker image to cfcr'
         arguments:
             IMAGE: '${{workerImage}}'
       ScanTest:
         title: 'Scan test image to cfcr'
-        fail_fast: false
+        fail-fast: false
         arguments:
             IMAGE: '${{testImage}}'
   PushHelmChart:
