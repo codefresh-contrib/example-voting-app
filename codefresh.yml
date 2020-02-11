@@ -164,15 +164,15 @@ steps:
    <<: *slack_notify
    arguments:
       MESSAGE: '${{CF_REPO_NAME}} Pipeline failed'
-    when:
-      condition:
-        all:
-          myCondition: workflow.result == 'failure'
+   when:
+     condition:
+       all:
+         myCondition: workflow.result == 'failure'
   SuccessNotify:
    <<: *slack_notify
    arguments:
       MESSAGE: '${{CF_REPO_NAME}} Pipeline completed successfuly'
-    when:
+   when:
       condition:
         all:
           myCondition: workflow.result == 'success'
