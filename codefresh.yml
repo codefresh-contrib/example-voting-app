@@ -1,5 +1,4 @@
 version: "1.0"
-fail_fast: false
 indicators:
   - slack_notify: &slack_notify
       stage: notifications
@@ -89,6 +88,7 @@ steps:
   AquaSecurityScan:
     type: aqua
     stage: 'test'
+    fail_fast: false
     arguments:
       AQUA_HOST: '${{AQUA_HOST}}'
       AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
@@ -97,19 +97,23 @@ steps:
       TAG: '${{CF_BRANCH_TAG_NORMALIZED}}'
     scale:
       ScanVote:
+        fail_fast: false
         title: 'Scan vote image'
         arguments:
             IMAGE: '${{voteImage}}'
       ScanResult:
+        fail_fast: false
         title: 'Scan result image to cfcr'
         arguments:
             IMAGE: '${{resultImage}}'
       ScanWorker:
+        fail_fast: false
         title: 'Scan worker image to cfcr'
         arguments:
             IMAGE: '${{workerImage}}'
       ScanTest:
         title: 'Scan test image to cfcr'
+        fail_fast: false
         arguments:
             IMAGE: '${{testImage}}'
   PushHelmChart:
@@ -163,21 +167,8 @@ steps:
       branch:
         only:
           - 'master'
-  FailureNotify:
+  CompleteNotify:
    <<: *slack_notify
    arguments:
-     MESSAGE: '${{CF_REPO_NAME}} Pipeline failed'
+     MESSAGE: '${{CF_REPO_NAME}} Pipeline completed'
      WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
-   when:
-     condition:
-       all:
-         myCondition: workflow.result == 'failure'
-  SuccessNotify:
-   <<: *slack_notify
-   arguments:
-     MESSAGE: '${{CF_REPO_NAME}} Pipeline completed successfuly'
-     WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
-   when:
-      condition:
-        all:
-          myCondition: workflow.result == 'success'
