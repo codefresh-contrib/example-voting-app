@@ -14,8 +14,7 @@ stages:
   - 'integration-test'
   - 'deploy-production'
 steps:
-  sendSlack:
-      *slack_message
+  sendSlack: *slack_message
       MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
   main_clone:
     type: 'git-clone'
