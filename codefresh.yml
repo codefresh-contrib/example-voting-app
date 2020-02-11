@@ -4,7 +4,7 @@ indicators:
       stage: notifications
       type: slack-message-sender
       arguments:
-        WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
+        WEBHOOK_URL: ${{SLACK_DEVOPS_HOOK_URL}}
 stages:
   - 'notifications'
   - 'clone'
