@@ -1,5 +1,4 @@
 version: "1.0"
-fail_fast: false
 indicators:
   - slack_notify: &slack_notify
       stage: notifications
