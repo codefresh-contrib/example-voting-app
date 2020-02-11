@@ -18,7 +18,8 @@ stages:
 steps:
   NotifyInit:
    <<: *slack_notify
-        MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
+    arguments:
+      MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
   main_clone:
     type: 'git-clone'
     description: 'Cloning main repository...'
@@ -162,4 +163,5 @@ steps:
           - 'master'
   NotifyComplete:
    <<: *slack_notify
+    arguments:
        MESSAGE: 'Finished ${{CF_REPO_NAME}} Pipeline'
