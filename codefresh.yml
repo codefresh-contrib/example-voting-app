@@ -1,19 +1,24 @@
 version: "1.0"
 fail_fast: false
+indicators:
+  - slack_notify: &slack_notify
+      stage: notifications
+      type: slack-message-sender
+      arguments:
+        WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
+        MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
 stages:
+  - 'notifications'
   - 'clone'
   - 'build'
-  - 'test'
   - 'push'
+  - 'test'
   - 'deploy-staging'
   - 'integration-test'
   - 'deploy-production'
 steps:
-  sendSlack:
-    type: slack-message-sender
-    arguments:
-      WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
-      MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
+  NotifyInit:
+   <<: *slack_notify
   main_clone:
     type: 'git-clone'
     description: 'Cloning main repository...'
@@ -155,3 +160,9 @@ steps:
       branch:
         only:
           - 'master'
+  NotifyComplete:
+    stage: notifications
+    type: slack-message-sender
+    arguments:
+      WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
+      MESSAGE: 'Finished ${{CF_REPO_NAME}} Pipeline'
