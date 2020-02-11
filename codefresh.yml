@@ -4,7 +4,7 @@ indicators:
       stage: notifications
       type: slack-message-sender
       arguments:
-        WEBHOOK_URL: ${{SLACK_DEVOPS_HOOK_URL}}
+        WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
 stages:
   - 'notifications'
   - 'clone'
@@ -19,6 +19,7 @@ steps:
    <<: *slack_notify
    arguments:
      MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
+     WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
   main_clone:
     title: 'Git Clone'
     type: 'git-clone'
@@ -164,7 +165,8 @@ steps:
   FailureNotify:
    <<: *slack_notify
    arguments:
-      MESSAGE: '${{CF_REPO_NAME}} Pipeline failed'
+     MESSAGE: '${{CF_REPO_NAME}} Pipeline failed'
+     WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
    when:
      condition:
        all:
@@ -172,7 +174,8 @@ steps:
   SuccessNotify:
    <<: *slack_notify
    arguments:
-      MESSAGE: '${{CF_REPO_NAME}} Pipeline completed successfuly'
+     MESSAGE: '${{CF_REPO_NAME}} Pipeline completed successfuly'
+     WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
    when:
       condition:
         all:
