@@ -4,7 +4,9 @@ stages:
   - 'build'
   - 'test'
   - 'push'
-  - 'deploy'
+  - 'deploy-staging'
+  - 'integration-test'
+  - 'deploy-prod'
 steps:
   main_clone:
     type: 'git-clone'
@@ -105,12 +107,39 @@ steps:
       - ACTION=push
       - CHART_REF=example-voting-app
   DeployToStaging:
-    stage: 'deploy'
+    stage: 'deploy-staging'
     image: 'codefresh/cfstep-helm:2.9.0'
     environment:
       - CHART_REF=example-voting-app
       - RELEASE_NAME=example-staging
       - KUBE_CONTEXT=staging-cluster
+      - VALUE_result_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/result
+      - VALUE_result_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+      - VALUE_vote_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/vote
+      - VALUE_vote_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+      - VALUE_worker_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/worker
+      - VALUE_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+    when:
+      branch:
+        only:
+          - 'master'
+  RunIntegrationOnStaging:
+    stage: 'integration-test'
+    title: Running test tools
+    image: '${{testImage}}'
+    commands:
+      - echo "This runs a command inside the test container we created..."
+    when:
+      branch:
+        only:
+          - 'master'
+  DeployToProduction:
+    stage: 'deploy-production'
+    image: 'codefresh/cfstep-helm:2.9.0'
+    environment:
+      - CHART_REF=example-voting-app
+      - RELEASE_NAME=example-production
+      - KUBE_CONTEXT=production-cluster
       - VALUE_result_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/result
       - VALUE_result_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - VALUE_vote_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/vote
