@@ -6,7 +6,7 @@ stages:
   - 'push'
   - 'deploy-staging'
   - 'integration-test'
-  - 'deploy-prod'
+  - 'deploy-production'
 steps:
   main_clone:
     type: 'git-clone'
