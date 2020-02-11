@@ -1,4 +1,10 @@
 version: "1.0"
+fail_fast: false
+indicators:
+  - slack_notify: &slack_message
+      type: slack-message-sender
+      arguments:
+        WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
 stages:
   - 'clone'
   - 'build'
@@ -8,6 +14,9 @@ stages:
   - 'integration-test'
   - 'deploy-production'
 steps:
+  sendSlack:
+      *slack_message
+      MESSAGE: Initiating ${{CF_REPO_NAME}} Pipeline
   main_clone:
     type: 'git-clone'
     description: 'Cloning main repository...'
@@ -75,7 +84,6 @@ steps:
   AquaSecurityScan:
     type: aqua
     stage: 'test'
-    fail-fast: false
     arguments:
       AQUA_HOST: '${{AQUA_HOST}}'
       AQUA_PASSWORD: '${{AQUA_PASSWORD}}'
