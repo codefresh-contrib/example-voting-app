@@ -97,23 +97,23 @@ steps:
       TAG: '${{CF_BRANCH_TAG_NORMALIZED}}'
     scale:
       ScanVote:
-        fail-fast: false
+        fail_fast: false
         title: 'Scan vote image'
         arguments:
             IMAGE: '${{voteImage}}'
       ScanResult:
-        fail-fast: false
+        fail_fast: false
         title: 'Scan result image to cfcr'
         arguments:
             IMAGE: '${{resultImage}}'
       ScanWorker:
-        fail-fast: false
+        fail_fast: false
         title: 'Scan worker image to cfcr'
         arguments:
             IMAGE: '${{workerImage}}'
       ScanTest:
         title: 'Scan test image to cfcr'
-        fail-fast: false
+        fail_fast: false
         arguments:
             IMAGE: '${{testImage}}'
   PushHelmChart:
