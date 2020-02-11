@@ -20,8 +20,9 @@ steps:
    arguments:
      MESSAGE: 'Initiating ${{CF_REPO_NAME}} Pipeline'
   main_clone:
+    title: 'Git Clone'
     type: 'git-clone'
-    description: 'Cloning main repository...'
+    description: 'Cloning main repository'
     repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
     revision: "${{CF_BRANCH}}"
     stage: 'clone'
