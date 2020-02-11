@@ -9,7 +9,7 @@ stages:
   - 'integration-test'
   - 'deploy-production'
 steps:
-  sendSlack: *slack_message
+  sendSlack:
     type: slack-message-sender
     arguments:
       WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
