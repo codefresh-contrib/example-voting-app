@@ -7,7 +7,6 @@ indicators:
       arguments:
         WEBHOOK_URL: '${{SLACK_DEVOPS_HOOK_URL}}'
 stages:
-  - 'notifications'
   - 'clone'
   - 'build'
   - 'push'
@@ -15,6 +14,7 @@ stages:
   - 'deploy-staging'
   - 'integration-test'
   - 'deploy-production'
+  - 'notifications'
 steps:
   NotifyInit:
    <<: *slack_notify
