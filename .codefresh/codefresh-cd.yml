@@ -66,26 +66,27 @@ steps:
       - value_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - value_worker_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
     commands:
+      - echo "Louie look at ${{CF_PULL_REQUEST_ACTION}}"
       - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
       - gpg --import --allow-secret-key-import mygpgkey_sec.asc
       - /opt/bin/release_chart
-    when:
-      condition:
-        any:
-          isPRopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'opened'"
-          isPRsynchronized: "'${{CF_PULL_REQUEST_ACTION}}' == 'synchronize'"
-          isPRreopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'reopened'"
+    # when:
+    #   condition:
+    #     any:
+    #       isPRopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'opened'"
+    #       isPRsynchronized: "'${{CF_PULL_REQUEST_ACTION}}' == 'synchronize'"
+    #       isPRreopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'reopened'"
   RunPRDVTs:
     stage: "pull request"
     image: 'codefresh/cli:latest'
     commands:
       - codefresh run example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v CF_REPO_OWNER=${{CF_REPO_OWNER}} -v CF_REPO_NAME=${{CF_REPO_NAME}} -v CF_REVISION=${{CF_REVISION}} -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_PULL_REQUEST_NUMBER}}-${{CF_REPO_NAME}}' -v TEST_IMAGE='example-voting-app/tests:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     when:
-      condition:
-        any:
-          isPRopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'opened'"
-          isPRsynchronized: "'${{CF_PULL_REQUEST_ACTION}}' == 'synchronize'"
-          isPRreopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'reopened'"
+      # condition:
+      #   any:
+      #     isPRopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'opened'"
+      #     isPRsynchronized: "'${{CF_PULL_REQUEST_ACTION}}' == 'synchronize'"
+      #     isPRreopen: "'${{CF_PULL_REQUEST_ACTION}}' == 'reopened'"
   PushChartToHelmRepository:
     stage: staging
     title: Push Helm Chart to Repository
