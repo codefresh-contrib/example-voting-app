@@ -66,9 +66,9 @@ steps:
       - value_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - value_worker_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
     commands:
-      - echo "Louie look at ${{CF_PULL_REQUEST_ACTION}}"
-      - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
-      - gpg --import --allow-secret-key-import mygpgkey_sec.asc
+      # - echo "Louie look at ${{CF_PULL_REQUEST_ACTION}}"
+      # - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
+      # - gpg --import --allow-secret-key-import mygpgkey_sec.asc
       - /opt/bin/release_chart
     when:
       condition:
