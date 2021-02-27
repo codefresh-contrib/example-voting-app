@@ -11,7 +11,7 @@ sources:
 maintainers:
 - name: Louie Corbo
   email: corbolj@gmail.com
-  dependencies:
+dependencies:
 - name: postgresql
   version: 10.3.7
   repository: https://charts.bitnami.com/bitnami
