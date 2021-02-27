@@ -124,8 +124,8 @@ steps:
       - value_worker_image_tag=master-${{CF_SHORT_REVISION}}
       - value_worker_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
     commands:
-      - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
-      - gpg --import --allow-secret-key-import mygpgkey_sec.asc
+      # - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
+      # - gpg --import --allow-secret-key-import mygpgkey_sec.asc
       - /opt/bin/release_chart
     when:
       condition:
