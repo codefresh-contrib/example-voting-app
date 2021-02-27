@@ -56,13 +56,13 @@ steps:
       - NAMESPACE=${{KUBE_NAMESPACE}}
       - DEBUG_CHART=true
       - CMD_PS=-f helm_vars/example-voting-app/pull-requests/worker/secrets.yaml
-      - value_result_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/result
+      - value_result_image_repository=${{CF_ACCOUNT}}/result
       - value_result_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - value_result_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
-      - value_vote_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/vote
+      - value_vote_image_repository=${{CF_ACCOUNT}}/vote
       - value_vote_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - value_vote_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
-      - value_worker_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/worker
+      - value_worker_image_repository=${{CF_ACCOUNT}}/worker
       - value_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
       - value_worker_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
     commands:
@@ -163,13 +163,13 @@ steps:
       - DEBUG_CHART=true
       # NEED PGP Key in metadata of CD spec
       - CMD_PS=-f /codefresh/volume/example-voting-app/helm_vars/example-voting-app/production/worker/secrets.yaml
-      - value_result_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/result
+      - value_result_image_repository=${{CF_ACCOUNT}}/result
       - value_result_image_tag=master-${{CF_SHORT_REVISION}}
       - value_result_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
-      - value_vote_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/vote
+      - value_vote_image_repository=${{CF_ACCOUNT}}/vote
       - value_vote_image_tag=master-${{CF_SHORT_REVISION}}
       - value_vote_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
-      - value_worker_image_repository=r.cfcr.io/${{CF_ACCOUNT}}/example-voting-app/worker
+      - value_worker_image_repository=${{CF_ACCOUNT}}/worker
       - value_worker_image_tag=master-${{CF_SHORT_REVISION}}
       - value_worker_image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-${{KUBE_NAMESPACE}}
     commands:
