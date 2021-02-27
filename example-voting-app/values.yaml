@@ -22,9 +22,9 @@ redis:
 #
 # replicaCount: 1
 #
-# image:
-#   repository: nginx
-#   pullPolicy: IfNotPresent
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
 #
 # imagePullSecrets: []
 # nameOverride: ""
