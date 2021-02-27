@@ -48,10 +48,10 @@ redis:
 #   # runAsNonRoot: true
 #   # runAsUser: 1000
 #
-# service:
-#   type: ClusterIP
-#   port: 80
-#
+service:
+  type: ClusterIP
+  port: 80
+
 # ingress:
 #   enabled: false
 #   annotations: {}
