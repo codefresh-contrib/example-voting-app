@@ -7,7 +7,35 @@ keywords:
 - example-voting-app
 version: 1.0.0
 sources:
-- https://github.com/codefresh-io/example-voting-app
+- https://github.com/corbolj/example-voting-app
 maintainers:
-- name: Dustin Van Buskirk
-  email: dustinvb@codefresh.io
+- name: Louie Corbo
+  email: corbolj@gmail.com
+dependencies:
+- name: postgresql
+  version: 10.3.7
+  repository: https://charts.bitnami.com/bitnami
+  condition: postgresql.enabled
+  tags:
+  - db
+- name: redis
+  version: 12.8.0
+  repository: https://charts.bitnami.com/bitnami
+  condition: redis.enabled
+  tags:
+  - queue
+- name: result
+  version: 1.0.0
+  repository: file://local-charts/result
+  tags:
+  - node
+- name: vote
+  version: 1.0.0
+  repository: file://local-charts/vote
+  tags:
+  - python
+- name: worker
+  version: 1.0.1
+  repository: file://local-charts/worker
+  tags:
+  - dotnet

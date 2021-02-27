@@ -1,10 +1,10 @@
 dependencies:
 - name: postgresql
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.9.5
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.3.7
 - name: redis
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.2.2
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.8.0
 - name: result
   repository: file://local-charts/result
   version: 1.0.0
@@ -14,5 +14,5 @@ dependencies:
 - name: worker
   repository: file://local-charts/worker
   version: 1.0.1
-digest: sha256:be9e99645386fb2f9c9685a681d578e63cbb6ca4a611ba5753362ff8e25ffdd5
-generated: 2019-01-03T19:02:39.281338-08:00
+digest: sha256:cba14d3624411d4385c8a8ab8bac68fefd9203e07a9af5794d7f4a2cdf6ddaae
+generated: "2021-02-27T18:19:36.652241-05:00"
