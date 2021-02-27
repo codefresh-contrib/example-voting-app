@@ -1,0 +1,167 @@
+version: "1.0"
+stages:
+  - clone
+  - build
+  - test
+  - deploy
+steps:
+  main_clone:
+    type: git-clone
+    title: Cloning main repository...
+    repo: https://github.com/codefresh-contrib/example-voting-app.git
+    revision: master
+    stage: clone
+  build_docker_images:
+    type: parallel
+    title: Building Docker images...
+    stage: build
+    steps:
+      build_result_image:
+        title: Building Result image...
+        type: build
+        image_name: example-voting-app/result
+        working_directory: ./result/
+        dockerfile: Dockerfile
+        tag: lab
+      build_vote_image:
+        title: Building Vote image...
+        type: build
+        image_name: example-voting-app/vote
+        working_directory: ./vote/
+        dockerfile: Dockerfile
+        tag: lab
+      build_worker_image:
+        title: Building Worker image...
+        type: build
+        image_name: example-voting-app/worker
+        working_directory: ./worker/
+        dockerfile: Dockerfile
+        tag: lab
+      build_test_image:
+        title: Building Test image...
+        type: build
+        image_name: example-voting-app/tests
+        working_directory: ./tests/
+        dockerfile: Dockerfile
+        tag: lab
+  run_integration_tests:
+    title: Running integration tests
+    stage: test
+    image: ${{build_test_image}}
+    environment:
+      - VOTE_ENDPOINT_IP=vote
+      - RESULT_ENDPOINT_IP=result
+      - BROWSER=chrome
+    commands:
+      - python -m pytest -vvv --alluredir=${{CF_VOLUME_PATH}}/allure-results ./tests/selenium/test_app.py
+    services:
+      scope: global
+      composition:
+        vote:
+          image: ${{build_vote_image}}
+          ports:
+            - '80'
+          environment:
+            - REDIS_HOST=redis
+        result:
+          image: ${{build_result_image}}
+          ports:
+            - '80'
+          environment:
+            - POSTGRES_SERVER=db
+            - POSTGRES_USERNAME=postgres
+            - POSTGRES_PASSWORD=postgres
+        worker:
+          image: ${{build_worker_image}}
+          depends_on:
+            - redis
+          environment:
+            - POSTGRES_SERVER=db
+            - POSTGRES_USERNAME=postgres
+            - POSTGRES_PASSWORD=postgres
+            - REDIS_HOST=redis
+        redis:
+          image: redis:alpine
+        db:
+          image: postgres:9.4
+          environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        selenium_hub:
+          image: selenium/hub:3.13.0
+          ports:
+            - 4444
+          environment:
+            - SE_OPTS=-debug
+            - GRID_MAX_SESSION=5
+        chrome_node:
+          image: selenium/node-chrome:3.13.0
+          ports:
+            - 5900
+            - 5555
+          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+          depends_on: 
+            - selenium_hub
+          environment:
+            - HUB_HOST=selenium_hub
+            - REMOTE_HOST=http://chrome_node:5555
+            - NODE_MAX_SESSION=5
+            - NODE_MAX_INSTANCES=5
+  launch_eva_environment:
+    title: Launch EVA Test Environment
+    stage: deploy
+    type: launch-composition
+    arguments:
+      composition:
+        version: '3'
+        services:
+          vote:
+            image: ${{build_vote_image}}
+            ports:
+              - '80'
+            networks:
+              - front-tier
+              - back-tier
+            environment:
+              - REDIS_HOST=redis
+          result:
+            image: ${{build_result_image}}
+            ports:
+              - '80'
+            networks:
+              - front-tier
+              - back-tier
+            environment:
+              - POSTGRES_SERVER=db
+              - POSTGRES_USERNAME=postgres
+              - POSTGRES_PASSWORD=postgres
+          worker:
+            image: ${{build_worker_image}}
+            depends_on:
+              - redis
+            networks:
+              - back-tier
+            environment:
+              - POSTGRES_SERVER=db
+              - POSTGRES_USERNAME=postgres
+              - POSTGRES_PASSWORD=postgres
+              - REDIS_HOST=redis
+          redis:
+            image: redis:alpine
+            networks:
+              - back-tier
+          db:
+            image: postgres:9.4
+            environment:
+              - POSTGRES_USER=postgres
+              - POSTGRES_PASSWORD=postgres
+            volumes:
+              - db-data:/var/lib/postgresql/data
+            networks:
+              - back-tier   
+        volumes:
+          db-data: null
+        networks:
+          front-tier: null
+          back-tier: null
+      environment_name: eva-test
