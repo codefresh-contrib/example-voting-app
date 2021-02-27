@@ -1,0 +1,5 @@
+# Approval Step
+  deploy_approval:
+    title: Deploy UAT Environment?
+    type: pending-approval
+    stage: deploy  
