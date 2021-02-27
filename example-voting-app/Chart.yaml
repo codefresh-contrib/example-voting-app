@@ -7,10 +7,10 @@ keywords:
 - example-voting-app
 version: 1.0.0
 sources:
-- https://github.com/codefresh-io/example-voting-app
+- https://github.com/corbolj/example-voting-app
 maintainers:
-- name: Dustin Van Buskirk
-  email: dustinvb@codefresh.io
+- name: Louie Corbo
+  email: corbolj@gmail.com
   dependencies:
 - name: postgresql
   version: 10.3.7
