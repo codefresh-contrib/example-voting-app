@@ -1,0 +1,20 @@
+# Matrix Step
+    matrix:
+      environment:
+        - BROWSER=chrome
+        - BROWSER=firefox
+
+# Firefox Service
+        firefox_node:
+          image: selenium/node-firefox:3.13.0
+          ports:
+            - 5900
+            - 5555
+          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+          depends_on: 
+            - selenium_hub
+          environment:
+            - HUB_HOST=selenium_hub
+            - REMOTE_HOST=http://firefox_node:5555
+            - NODE_MAX_SESSION=5
+            - NODE_MAX_INSTANCES=5

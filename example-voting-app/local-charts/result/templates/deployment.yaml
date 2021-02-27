@@ -10,9 +10,6 @@ metadata:
     version: {{ .Values.image.tag | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      app: {{ template "fullname" . }}
   template:
     metadata:
       labels:
