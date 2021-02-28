@@ -69,7 +69,7 @@ steps:
           - '${{CF_VOLUME_NAME}}:/codefresh/volume'
 
 # See https://codefresh.io/docs/docs/testing/test-reports to setup test reporting.  Tests above already in correct folder just need to add storage integration to this pipeline and uncomment steps below.
-  GenerateTestReporting:
-    title: Generating Test Reporting
-    image: codefresh/cf-docker-test-reporting
-    working_directory: '${{CF_VOLUME_PATH}}/'
+  # GenerateTestReporting:
+  #   title: Generating Test Reporting
+  #   image: codefresh/cf-docker-test-reporting
+  #   working_directory: '${{CF_VOLUME_PATH}}/'
