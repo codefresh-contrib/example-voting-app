@@ -107,7 +107,7 @@ steps:
       - CHART_VERSION=${{CF_RELEASE_TAG}}
       - RELEASE_NAME=staging-example-voting-app
       - KUBE_CONTEXT=${{KUBE_CONTEXT}}
-      - NAMESPACE=${{KUBE_NAMESPACE}}
+      - NAMESPACE=staging
       - DEBUG_CHART=true
       - CMD_PS=-f /codefresh/volume/example-voting-app/helm_vars/example-voting-app/staging/worker/secrets.yaml
       - value_result_image_repository=${{CF_ACCOUNT}}/result
@@ -158,7 +158,7 @@ steps:
       - CHART_VERSION=${{CF_RELEASE_TAG}}
       - RELEASE_NAME=production-example-voting-app
       - KUBE_CONTEXT=${{KUBE_CONTEXT}}
-      - NAMESPACE=${{KUBE_NAMESPACE}}
+      - NAMESPACE=production
       - DEBUG_CHART=true
       # NEED PGP Key in metadata of CD spec
       - CMD_PS=-f /codefresh/volume/example-voting-app/helm_vars/example-voting-app/production/worker/secrets.yaml
