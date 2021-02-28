@@ -24,13 +24,13 @@ steps:
     composition:
       version: '2'
       services:
-        # selenium_hub:
-        #   image: selenium/hub:4.0.0
-        #   ports:
-        #     - 4444
-        #   environment:
-        #     - SE_OPTS=-debug
-        #     - GRID_MAX_SESSION=5
+        selenium_hub:
+          image: selenium/hub:4.0.0
+          ports:
+            - 4444
+          environment:
+            - SE_OPTS=-debug
+            - GRID_MAX_SESSION=5
         chrome_node:
           image: selenium/node-chrome:88.0
           ports:
