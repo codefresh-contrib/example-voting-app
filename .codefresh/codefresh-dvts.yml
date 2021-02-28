@@ -31,32 +31,32 @@ steps:
           environment:
             - SE_OPTS=-debug
             - GRID_MAX_SESSION=5
-        # chrome_node:
-        #   image: selenium/node-chrome:88.0
-        #   ports:
-        #     - 5900
-        #     - 5555
-        #   command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-        #   depends_on:
-        #     - selenium_hub
-        #   environment:
-        #     - HUB_HOST=selenium_hub
-        #     - REMOTE_HOST=http://chrome_node:5555
-        #     - NODE_MAX_SESSION=5
-        #     - NODE_MAX_INSTANCES=5
-        # firefox_node:
-        #   image: selenium/node-firefox:85.0
-        #   ports:
-        #     - 5900
-        #     - 5555
-        #   command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-        #   depends_on:
-        #     - selenium_hub
-        #   environment:
-        #     - HUB_HOST=selenium_hub
-        #     - REMOTE_HOST=http://firefox_node:5555
-        #     - NODE_MAX_SESSION=5
-        #     - NODE_MAX_INSTANCES=5
+        chrome_node:
+          image: selenium/node-chrome:88.0
+          ports:
+            - 5900
+            - 5555
+          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+          depends_on:
+            - selenium_hub
+          environment:
+            - HUB_HOST=selenium_hub
+            - REMOTE_HOST=http://chrome_node:5555
+            - NODE_MAX_SESSION=5
+            - NODE_MAX_INSTANCES=5
+        firefox_node:
+          image: selenium/node-firefox:85.0
+          ports:
+            - 5900
+            - 5555
+          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+          depends_on:
+            - selenium_hub
+          environment:
+            - HUB_HOST=selenium_hub
+            - REMOTE_HOST=http://firefox_node:5555
+            - NODE_MAX_SESSION=5
+            - NODE_MAX_INSTANCES=5
     # composition_candidates:
     #   test:
     #     image: ${{TEST_IMAGE}}
