@@ -18,45 +18,45 @@ steps:
     commands:
       - kubectl config use-context ${{KUBE_CONTEXT}}
       - bash -c 'IFS=" " read -a services <<< "${{SERVICES}}" && for service in "${services[@]}"; do external_ip=""; while [ -z $external_ip ]; do echo "Waiting for end point... from kubectl get svc ${{RELEASE_NAME}}-${service} --namespace ${{NAMESPACE}} --template=\"{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}\""; external_ip=$(kubectl get svc ${{RELEASE_NAME}}-${service} --namespace ${{NAMESPACE}} --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}"); [ -z "$external_ip" ] && sleep 10; done; echo "End point ready-" && echo $external_ip; cf_export ${service^^}_ENDPOINT_IP=$external_ip; done'
-  RunDeploymentVerificationTests:
-    title: Running Selenium DVTs
-    type: composition
-    composition:
-      version: '2'
-      services:
-        selenium_hub:
-          image: selenium/hub:4.0.0
-          ports:
-            - 4444
-          environment:
-            # - SE_OPTS=-debug
-            - GRID_MAX_SESSION=5
-        # chrome_node:
-        #   image: selenium/node-chrome:88.0
-        #   ports:
-        #     - 5900
-        #     - 5555
-        #   command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-        #   depends_on:
-        #     - selenium_hub
-        #   environment:
-        #     - HUB_HOST=selenium_hub
-        #     - REMOTE_HOST=http://chrome_node:5555
-        #     - NODE_MAX_SESSION=5
-        #     - NODE_MAX_INSTANCES=5
-        # firefox_node:
-        #   image: selenium/node-firefox:85.0
-        #   ports:
-        #     - 5900
-        #     - 5555
-        #   command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-        #   depends_on:
-        #     - selenium_hub
-        #   environment:
-        #     - HUB_HOST=selenium_hub
-        #     - REMOTE_HOST=http://firefox_node:5555
-        #     - NODE_MAX_SESSION=5
-        #     - NODE_MAX_INSTANCES=5
+  # RunDeploymentVerificationTests:
+  #   title: Running Selenium DVTs
+  #   type: composition
+  #   composition:
+  #     version: '2'
+  #     services:
+  #       selenium_hub:
+  #         image: selenium/hub:4.0.0
+  #         ports:
+  #           - 4444
+  #         environment:
+  #           # - SE_OPTS=-debug
+  #           - GRID_MAX_SESSION=5
+  #       chrome_node:
+  #         image: selenium/node-chrome:88.0
+  #         ports:
+  #           - 5900
+  #           - 5555
+  #         command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+  #         depends_on:
+  #           - selenium_hub
+  #         environment:
+  #           - HUB_HOST=selenium_hub
+  #           - REMOTE_HOST=http://chrome_node:5555
+  #           - NODE_MAX_SESSION=5
+  #           - NODE_MAX_INSTANCES=5
+  #       firefox_node:
+  #         image: selenium/node-firefox:85.0
+  #         ports:
+  #           - 5900
+  #           - 5555
+  #         command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+  #         depends_on:
+  #           - selenium_hub
+  #         environment:
+  #           - HUB_HOST=selenium_hub
+  #           - REMOTE_HOST=http://firefox_node:5555
+  #           - NODE_MAX_SESSION=5
+  #           - NODE_MAX_INSTANCES=5
     composition_candidates:
       test:
         image: ${{TEST_IMAGE}}
