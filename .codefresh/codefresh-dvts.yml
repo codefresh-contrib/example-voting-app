@@ -29,7 +29,7 @@ steps:
           ports:
             - 4444
           environment:
-            - SE_OPTS=-debug
+            # - SE_OPTS=-debug
             - GRID_MAX_SESSION=5
         chrome_node:
           image: selenium/node-chrome:88.0
