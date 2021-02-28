@@ -8,6 +8,6 @@ steps:
     git: github
   LintHelmChart:
     title: Linting Helm Chart
-    image: codefresh/cfstep-helm
+    image: codefresh/cfstep-helm:3.2.3
     commands:
       - bash -c 'cd /codefresh/volume/example-voting-app/example-voting-app && helm lint'
