@@ -107,7 +107,7 @@ steps:
       - CHART_VERSION=${{CF_RELEASE_TAG}}
       - RELEASE_NAME=staging-example-voting-app
       - KUBE_CONTEXT=${{KUBE_CONTEXT}}
-      - NAMESPACE=${{KUBE_NAMESPACE}}
+      - NAMESPACE=staging
       - DEBUG_CHART=true
       - CMD_PS=-f /codefresh/volume/example-voting-app/helm_vars/example-voting-app/staging/worker/secrets.yaml
       - value_result_image_repository=${{CF_ACCOUNT}}/result
@@ -133,7 +133,7 @@ steps:
     title: Running DVTS on Staging Release
     image: 'codefresh/cli:latest'
     commands:
-      - codefresh run example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v CF_REPO_OWNER=${{CF_REPO_OWNER}} -v CF_REPO_NAME=${{CF_REPO_NAME}} -v CF_REVISION=${{CF_REVISION}} -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=${{KUBE_NAMESPACE}} -v SERVICES='vote result' -v RELEASE_NAME='staging-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+      - codefresh run example-voting-app/dvts -b='${{CF_BRANCH}}' -s='${{CF_REVISION}}' -v CF_REPO_OWNER=${{CF_REPO_OWNER}} -v CF_REPO_NAME=${{CF_REPO_NAME}} -v CF_REVISION=${{CF_REVISION}} -v KUBE_CONTEXT='${{KUBE_CONTEXT}}' -v NAMESPACE=staging -v SERVICES='vote result' -v RELEASE_NAME='staging-example-voting-app' -v TEST_IMAGE='example-voting-app/tests:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     when:
       condition:
         any:
