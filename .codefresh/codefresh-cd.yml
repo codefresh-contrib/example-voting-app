@@ -63,7 +63,6 @@ steps:
       - value_worker_image_repository=${{CF_ACCOUNT}}/worker
       - value_worker_image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
     commands:
-      - echo "Louie look at ${{CF_PULL_REQUEST_ACTION}}"
       # - echo -e "${{GPG_SEC}}" > mygpgkey_sec.asc
       # - gpg --import --allow-secret-key-import mygpgkey_sec.asc
       - /opt/bin/release_chart
