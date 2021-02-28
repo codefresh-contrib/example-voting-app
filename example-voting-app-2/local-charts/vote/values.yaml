@@ -1,15 +1,11 @@
-# Default values for worker.
+# Default values for vote.
 # This is a YAML-formatted file.
 # Declare name/value pairs to be passed into your templates.
 # name: value
-image:
-  repository: corbolj/worker
+image: 
+  repository: corbolj/vote
   tag: latest
   pullSecret: cfcr
-
-postgresql:
-  postgresUser: postgres
-  postgresPassword: postgres
 
 redis:
   usePassword: false
