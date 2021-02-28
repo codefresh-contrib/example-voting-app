@@ -6,6 +6,7 @@ keywords:
 - kubernetes
 - example-voting-app
 version: 1.0.0
+icon: https://symbols.getvecta.com/stencil_77/28_codefresh-icon.3003cf4d71.png
 sources:
 - https://github.com/corbolj/example-voting-app
 maintainers:
