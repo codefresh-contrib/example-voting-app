@@ -28,50 +28,50 @@ def browser():
     )
     yield browser
     browser.quit()
-
-
-def test_confirm_vote_title(browser):
-    browser.get("http://{}:80".format(vote_endpoint_ip))
-    option_a = "The Unicorn"
-    option_b = "Young Sheldon"
-    assert "{} vs {}!".format(option_a, option_b) in browser.title
-
-def test_confirm_vote_choice_form(browser):
-    browser.get("http://{}:80".format(vote_endpoint_ip))
-    element = browser.find_element(By.ID, 'choice')
-    assert element.get_attribute('id') == 'choice'
-
-
-def test_confirm_vote_button_a(browser):
-    browser.get("http://{}:80".format(vote_endpoint_ip))
-    element = browser.find_element(By.ID, 'a')
-    assert element.get_attribute('id') == 'a'
-
-
-def test_confirm_vote_button_b(browser):
-    browser.get("http://{}:80".format(vote_endpoint_ip))
-    element = browser.find_element(By.ID, 'b')
-    assert element.get_attribute('id') == 'b'
-
-
-def test_vote_click(browser):
-    browser.get("http://{}:80".format(vote_endpoint_ip))
-    browser.find_element(By.ID, 'a').click()
-    WebDriverWait(browser, 3)
-
-
-def test_confirm_result_title(browser):
-    browser.get("http://{}:80".format(result_endpoint_ip))
-    assert "The Unicorn vs Young Sheldon -- Result" in browser.title
-
-
-def test_confirm_result(browser):
-    browser.get("http://{}:80".format(result_endpoint_ip))
-    element = browser.find_element(By.ID, 'result')
-    assert element.get_attribute('id') == 'result'
-
-
-def test_confirm_result_vote_tally(browser):
-    browser.get("http://{}:80".format(result_endpoint_ip))
-    element = browser.find_element(By.ID, 'result')
-    assert 'No votes yet' not in element.text
+#
+#
+# def test_confirm_vote_title(browser):
+#     browser.get("http://{}:80".format(vote_endpoint_ip))
+#     option_a = "The Unicorn"
+#     option_b = "Young Sheldon"
+#     assert "{} vs {}!".format(option_a, option_b) in browser.title
+#
+# def test_confirm_vote_choice_form(browser):
+#     browser.get("http://{}:80".format(vote_endpoint_ip))
+#     element = browser.find_element(By.ID, 'choice')
+#     assert element.get_attribute('id') == 'choice'
+#
+#
+# def test_confirm_vote_button_a(browser):
+#     browser.get("http://{}:80".format(vote_endpoint_ip))
+#     element = browser.find_element(By.ID, 'a')
+#     assert element.get_attribute('id') == 'a'
+#
+#
+# def test_confirm_vote_button_b(browser):
+#     browser.get("http://{}:80".format(vote_endpoint_ip))
+#     element = browser.find_element(By.ID, 'b')
+#     assert element.get_attribute('id') == 'b'
+#
+#
+# def test_vote_click(browser):
+#     browser.get("http://{}:80".format(vote_endpoint_ip))
+#     browser.find_element(By.ID, 'a').click()
+#     WebDriverWait(browser, 3)
+#
+#
+# def test_confirm_result_title(browser):
+#     browser.get("http://{}:80".format(result_endpoint_ip))
+#     assert "The Unicorn vs Young Sheldon -- Result" in browser.title
+#
+#
+# def test_confirm_result(browser):
+#     browser.get("http://{}:80".format(result_endpoint_ip))
+#     element = browser.find_element(By.ID, 'result')
+#     assert element.get_attribute('id') == 'result'
+#
+#
+# def test_confirm_result_vote_tally(browser):
+#     browser.get("http://{}:80".format(result_endpoint_ip))
+#     element = browser.find_element(By.ID, 'result')
+#     assert 'No votes yet' not in element.text
