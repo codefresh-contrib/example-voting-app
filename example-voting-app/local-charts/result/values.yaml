@@ -4,7 +4,7 @@
 # name: value
 image:
   repository: corbolj/result
-  tag: latest
+  tag: 1.0.0
   pullSecret: cfcr
 
 postgresql:

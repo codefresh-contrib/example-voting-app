@@ -2,9 +2,9 @@
 # This is a YAML-formatted file.
 # Declare name/value pairs to be passed into your templates.
 # name: value
-image: 
+image:
   repository: corbolj/vote
-  tag: latest
+  tag: 1.0.0
   pullSecret: cfcr
 
 redis:
