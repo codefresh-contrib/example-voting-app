@@ -1,0 +1,126 @@
+version: '1.0'
+stages:
+  - "Clone Environments Repo"
+  - "Deploy To Development"
+  - "Deploy To QA"
+  - "Production Approval"
+  - "Deploy To Production"
+steps:
+
+  GITClone:
+    title: Cloning main repository...
+    type: git-clone
+    repo: 'aperture-sci/environments'
+    revision: 'main'
+    git: github
+    stage: "Clone Environments Repo"
+  
+  DeployToDevelopment:
+    title: Upgrading Development...
+    type: helm
+    arguments:
+      action: install
+      chart_name: ${{CHART_NAME}}
+      chart_version: ${{RELEASE_CANDIDATE}}
+      release_name: eva-dev
+      helm_version: 3.9.0
+      kube_context: kubecon-dev
+      namespace: eva-dev
+      helm_repository_context: aperture-sci-artifactory
+      skip_cf_stable_helm_repo: true
+      credentials_in_arguments: true
+      custom_value_files:
+        - /codefresh/volume/environments/eva/development/values.yaml
+    stage: "Deploy To Development"
+  RunDVTSOnDevelopment:
+    title: Testing Development...
+    type: codefresh-run
+    arguments:
+      PIPELINE_ID: "Example Voting App/dvts"
+      TRIGGER_ID: dvts
+      BRANCH: main
+      SHA: ${{CF_REVISION}}
+      ENABLE_NOTIFICATIONS: true
+      CONTEXT:
+        - github
+      VARIABLE:
+        - KUBE_CONTEXT=kubecon-dev
+        - RELEASE_NAME=eva-dev
+        - NAMESPACE=eva-dev
+        - TEST_IMAGE=aperturesci.jfrog.io/demo-docker/tests:${{RELEASE_CANDIDATE_IMAGE_TAG}}
+    stage: "Deploy To Development"
+    
+  DeployToQA:
+    title: Upgrading QA...
+    type: helm
+    arguments:
+      action: install
+      chart_name: ${{CHART_NAME}}
+      chart_version: ${{RELEASE_CANDIDATE}}
+      release_name: eva-qa
+      helm_version: 3.9.0
+      kube_context: kubecon-dev
+      namespace: eva-qa
+      helm_repository_context: aperture-sci-artifactory
+      skip_cf_stable_helm_repo: true
+      credentials_in_arguments: true
+      custom_value_files:
+        - /codefresh/volume/environments/eva/qa/values.yaml
+    stage: "Deploy To QA"
+  RunDVTSOnQA:
+    title: Testing QA...
+    type: codefresh-run
+    arguments:
+      PIPELINE_ID: "Example Voting App/dvts"
+      TRIGGER_ID: dvts
+      BRANCH: main
+      SHA: ${{CF_REVISION}}
+      ENABLE_NOTIFICATIONS: true
+      CONTEXT:
+        - github
+      VARIABLE:
+        - KUBE_CONTEXT=kubecon-dev
+        - RELEASE_NAME=eva-qa
+        - NAMESPACE=eva-qa
+        - TEST_IMAGE=aperturesci.jfrog.io/demo-docker/tests:${{RELEASE_CANDIDATE_IMAGE_TAG}}
+    stage: "Deploy To QA"
+  
+  ApproveProductionDeployment:
+    type: pending-approval
+    title: Waiting for Production Approval...
+    stage: "Production Approval"
+  
+  DeployToProduction:
+    title: Upgrading Production...
+    type: helm
+    arguments:
+      action: install
+      chart_name: ${{CHART_NAME}}
+      chart_version: ${{RELEASE_CANDIDATE}}
+      release_name: eva-prod
+      helm_version: 3.9.0
+      kube_context: kubecon-dev
+      namespace: eva-prod
+      helm_repository_context: aperture-sci-artifactory
+      skip_cf_stable_helm_repo: true
+      credentials_in_arguments: true
+      custom_value_files:
+        - /codefresh/volume/environments/eva/production/values.yaml
+    stage: "Deploy To Production"
+  RunDVTSOnProduction:
+    title: Testing Production...
+    type: codefresh-run
+    arguments:
+      PIPELINE_ID: "Example Voting App/dvts"
+      TRIGGER_ID: dvts
+      BRANCH: main
+      SHA: ${{CF_REVISION}}
+      ENABLE_NOTIFICATIONS: true
+      CONTEXT:
+        - github
+      VARIABLE:
+        - KUBE_CONTEXT=kubecon-dev
+        - RELEASE_NAME=eva-prod
+        - NAMESPACE=eva-prod
+        - TEST_IMAGE=aperturesci.jfrog.io/demo-docker/tests:${{RELEASE_CANDIDATE_IMAGE_TAG}}
+    stage: "Deploy To Production"

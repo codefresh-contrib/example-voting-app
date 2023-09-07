@@ -1,0 +1,148 @@
+version: '1.0'
+stages:
+  - 'Clone Source Code Repo'
+  - 'Prepare Testing Environment'
+  - 'Get Deployment Details'
+  - 'Preform DVTs'
+  - 'Finalize Test Reports'
+steps:
+
+  GITClone:
+    title: Cloning main repository...
+    type: git-clone
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+    git: github
+    stage: 'Clone Source Code Repo'
+
+  RemoveExistingTestReports:
+    title: Removing Previous Test Reports
+    image: alpine
+    commands:
+      - cd '${{CF_VOLUME_PATH}}/'
+      - rm -r -f allure-results
+    stage: 'Prepare Testing Environment'
+
+  GetKubernetesServicesEndpoints:
+    title: Getting Kubernetes Services Endpoints
+    image: codefresh/cfstep-helm
+    commands:
+      - kubectl config use-context ${{KUBE_CONTEXT}}
+      - bash -c 'IFS=" " read -a services <<< "${{TESTING_SERVICES}}" && for service in "${services[@]}"; do external_ip=""; while [ -z $external_ip ]; do echo "Waiting for end point... from kubectl get svc ${{RELEASE_NAME}}-${service} --namespace ${{NAMESPACE}} --template=\"{{range .status.loadBalancer.ingress}}{{.hostname}}{{end}}\""; external_ip=$(kubectl get svc ${{RELEASE_NAME}}-${service} --namespace ${{NAMESPACE}} --template="{{range .status.loadBalancer.ingress}}{{.hostname}}{{end}}"); [ -z "$external_ip" ] && sleep 10; done; echo "End point ready-" && echo $external_ip; cf_export ${service^^}_ENDPOINT_IP=$external_ip; done'
+    stage: 'Get Deployment Details'
+
+  RunIntegrationTests:
+    title: Running Integration Tests
+    image: ${{TEST_IMAGE}}
+    working_dir: ${{GITClone}}/tests/selenium
+    environment:
+      - VOTE_ENDPOINT=${{VOTE_ENDPOINT_IP}}
+      - RESULT_ENDPOINT=${{RESULT_ENDPOINT_IP}}
+      - SERVICES=${{TESTING_SERVICES}}"
+    entry_point: /bin/sh
+    commands:
+      - bash -c 'IFS=" " read -a browserarray <<< "${{BROWSERS}}" && for browser in "$${browserarray[@]}"; do BROWSER=$$browser python -m pytest -vvv --alluredir=${{CF_VOLUME_PATH}}/allure-results; done'
+    services:
+      composition:
+        selenium-event-bus:
+          image: selenium/event-bus:4.11.0-20230801
+          container_name: selenium-event-bus
+          ports:
+            - 4442
+            - 4443
+            - 5557
+        selenium-sessions:
+          image: selenium/sessions:4.11.0-20230801
+          container_name: selenium-sessions
+          ports:
+            - 5556
+          depends_on:
+            - selenium-event-bus
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        selenium-session-queue:
+          image: selenium/session-queue:4.11.0-20230801
+          container_name: selenium-session-queue
+          ports:
+            - 5559
+        selenium-distributor:
+          image: selenium/distributor:4.11.0-20230801
+          container_name: selenium-distributor
+          ports:
+            - 5553
+          depends_on:
+            - selenium-event-bus
+            - selenium-sessions
+            - selenium-session-queue
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+            - SE_SESSIONS_MAP_HOST=selenium-sessions
+            - SE_SESSIONS_MAP_PORT=5556
+            - SE_SESSION_QUEUE_HOST=selenium-session-queue
+            - SE_SESSION_QUEUE_PORT=5559
+        selenium-router:
+          image: selenium/router:4.11.0-20230801
+          container_name: selenium-router
+          ports:
+            - 4444
+          depends_on:
+            - selenium-distributor
+            - selenium-sessions
+            - selenium-session-queue
+          environment:
+            - SE_DISTRIBUTOR_HOST=selenium-distributor
+            - SE_DISTRIBUTOR_PORT=5553
+            - SE_SESSIONS_MAP_HOST=selenium-sessions
+            - SE_SESSIONS_MAP_PORT=5556
+            - SE_SESSION_QUEUE_HOST=selenium-session-queue
+            - SE_SESSION_QUEUE_PORT=5559
+        chrome:
+          image: selenium/node-chrome:4.11.0-20230801
+          depends_on:
+            - selenium-event-bus
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      readiness:
+        timeoutSeconds: 90
+        initialDelaySeconds: 15
+        periodSeconds: 15
+        image: 'alpine/curl'
+        commands:
+          - "curl http://selenium-router:4444/wd/hub/status" 
+        depends_on:
+          - selenium-router
+        # Saving other browser options for later development
+        # edge:
+        #   image: selenium/node-edge:4.11.0-20230801
+        #   shm_size: 2gb
+        #   depends_on:
+        #     - selenium-event-bus
+        #   environment:
+        #     - SE_EVENT_BUS_HOST=selenium-event-bus
+        #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+        #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        # firefox:
+        #   image: selenium/node-firefox:4.11.0-20230801
+        #   shm_size: 2gb
+        #   depends_on:
+        #     - selenium-event-bus
+        #   environment:
+        #     - SE_EVENT_BUS_HOST=selenium-event-bus
+        #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+        #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    stage: 'Preform DVTs'
+
+  UploadTestReports:
+    title: Uploading Test Reports
+    image: codefresh/cf-docker-test-reporting
+    working_directory: '${{CF_VOLUME_PATH}}/'
+    environment:
+      - BUCKET_NAME=aperture-sci
+      - CF_STORAGE_INTEGRATION=google
+    stage: 'Finalize Test Reports'

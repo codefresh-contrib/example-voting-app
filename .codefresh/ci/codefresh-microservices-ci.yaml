@@ -1,0 +1,210 @@
+version: '1.0'
+
+stages:
+  - 'Clone Source Code Repo'
+  - 'Run Unit Tests'
+  - 'Build Docker Images'
+  - 'Run Integration Tests'
+  - 'Upload Test Reports'
+
+steps:
+
+  GITClone:
+    title: Cloning GIT Repository
+    type: git-clone
+    arguments:
+      repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+      revision: ${{CF_REVISION}}
+      git: github
+    stage: 'Clone Source Code Repo'
+
+  TestNPMAngular:
+    Title: Running Unit Tests...
+    image: trion/ng-cli-karma
+    #working_directory: ${{GITClone}}/mock-tests
+    commands:
+      - cd /codefresh/volume/example-voting-app/mock-tests
+      - npm i
+      - ng test
+    stage: 'Run Unit Tests'
+
+  BuildDockerfiles:
+    title: Building Required Docker Images
+    type: parallel
+    steps:
+      DockerBuildMicroservice:
+        title: Building Microservice Docker Image
+        type: build
+        working_directory: ${{GITClone}}/${{MICROSERVICE}}/
+        image_name: ${{MICROSERVICE}}
+        tag: ${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        registry: aperture-sci
+      DockerBuildTests:
+        title: Building Tests Docker Image
+        type: build
+        working_directory: ${{GITClone}}/tests/
+        image_name: tests
+        tag: ${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        registry: aperture-sci
+    stage: 'Build Docker Images'
+
+  SetMicroserviceImage:
+    title: Setting Image to Test
+    type: freestyle
+    arguments:
+      image: quay.io/codefresh/cli
+      shell: bash
+      commands:
+        - cf_export VOTE_IMAGE=aperturesci.jfrog.io/demo-docker/vote:stable
+        - cf_export RESULT_IMAGE=aperturesci.jfrog.io/demo-docker/result:stable
+        - cf_export WORKER_IMAGE=aperturesci.jfrog.io/demo-docker/worker:stable
+        - cf_export $(echo "${{MICROSERVICE}}" | awk '{print toupper($0)}')_IMAGE=aperturesci.jfrog.io/demo-docker/${{MICROSERVICE}}:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        
+    stage: 'Run Integration Tests'
+
+  # TODO: Add PhantomJS Example
+
+  RunIntegrationTests:
+    title: Running Integration Tests
+    image: ${{DockerBuildTests}}
+    working_dir: ${{GITClone}}/tests/selenium
+    environment:
+      - VOTE_ENDPOINT=vote:80
+      - RESULT_ENDPOINT=result:80
+      - SERVICES=${{TESTING_SERVICES}}"
+    entry_point: /bin/sh
+    commands:
+      - bash -c 'IFS=" " read -a browserarray <<< "${{BROWSERS}}" && for browser in "$${browserarray[@]}"; do BROWSER=$$browser python -m pytest -vvv --alluredir=${{CF_VOLUME_PATH}}/allure-results; done'
+    services:
+      composition:
+        selenium-event-bus:
+          image: selenium/event-bus:4.11.0-20230801
+          container_name: selenium-event-bus
+          ports:
+            - 4442
+            - 4443
+            - 5557
+        selenium-sessions:
+          image: selenium/sessions:4.11.0-20230801
+          container_name: selenium-sessions
+          ports:
+            - 5556
+          depends_on:
+            - selenium-event-bus
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        selenium-session-queue:
+          image: selenium/session-queue:4.11.0-20230801
+          container_name: selenium-session-queue
+          ports:
+            - 5559
+        selenium-distributor:
+          image: selenium/distributor:4.11.0-20230801
+          container_name: selenium-distributor
+          ports:
+            - 5553
+          depends_on:
+            - selenium-event-bus
+            - selenium-sessions
+            - selenium-session-queue
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+            - SE_SESSIONS_MAP_HOST=selenium-sessions
+            - SE_SESSIONS_MAP_PORT=5556
+            - SE_SESSION_QUEUE_HOST=selenium-session-queue
+            - SE_SESSION_QUEUE_PORT=5559
+        selenium-router:
+          image: selenium/router:4.11.0-20230801
+          container_name: selenium-router
+          ports:
+            - 4444
+          depends_on:
+            - selenium-distributor
+            - selenium-sessions
+            - selenium-session-queue
+          environment:
+            - SE_DISTRIBUTOR_HOST=selenium-distributor
+            - SE_DISTRIBUTOR_PORT=5553
+            - SE_SESSIONS_MAP_HOST=selenium-sessions
+            - SE_SESSIONS_MAP_PORT=5556
+            - SE_SESSION_QUEUE_HOST=selenium-session-queue
+            - SE_SESSION_QUEUE_PORT=5559
+        chrome:
+          image: selenium/node-chrome:4.11.0-20230801
+          depends_on:
+            - selenium-event-bus
+          environment:
+            - SE_EVENT_BUS_HOST=selenium-event-bus
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        # Saving other browser options for later development
+        # edge:
+        #   image: selenium/node-edge:4.11.0-20230801
+        #   shm_size: 2gb
+        #   depends_on:
+        #     - selenium-event-bus
+        #   environment:
+        #     - SE_EVENT_BUS_HOST=selenium-event-bus
+        #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+        #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        # firefox:
+        #   image: selenium/node-firefox:4.11.0-20230801
+        #   shm_size: 2gb
+        #   depends_on:
+        #     - selenium-event-bus
+        #   environment:
+        #     - SE_EVENT_BUS_HOST=selenium-event-bus
+        #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+        #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        vote:
+          image: ${{VOTE_IMAGE}}
+          depends_on: 
+            - redis
+          ports:
+            - 80
+        result:
+          image: ${{RESULT_IMAGE}}
+          # use nodemon rather than node for local dev
+          depends_on:
+            - db
+          ports:
+            - 80
+        worker:
+          image: ${{WORKER_IMAGE}}
+          depends_on:
+            - redis
+            - db
+        redis:
+          image: redis:alpine
+        db:
+          image: postgres:15-alpine
+          environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+      readiness:
+        timeoutSeconds: 90
+        initialDelaySeconds: 15
+        periodSeconds: 15
+        image: 'postgres:latest'
+        commands:
+          - "pg_isready -h db" 
+        depends_on:
+          - vote 
+    stage: 'Run Integration Tests'
+
+  UploadTestReports:
+    title: Uploading Test Reports...
+    image: codefresh/cf-docker-test-reporting
+    working_directory: '${{CF_VOLUME_PATH}}'
+    environment:
+      - BUCKET_NAME=aperture-sci
+      - CF_STORAGE_INTEGRATION=google
+      - ALLURE_DIR.0=${{CF_REPO_NAME}}/allure-results
+      - REPORT_TYPE.0=mocha
+      - ALLURE_DIR.1=allure-results
+      - REPORT_TYPE.1=allure
+    stage: 'Upload Test Reports'

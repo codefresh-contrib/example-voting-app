@@ -1,0 +1,7 @@
+- CF_REPO_OWNER: aperture-sci
+  CF_REPO_NAME: example-voting-app
+  CF_REVISION: add-helm-cd-promotion
+  HELM_CHART_PATH: ./example-voting-app
+  CHART_NAME: example-voting-app
+  MICROSERVICE: vote
+  MICROSERVICE_VERSION: AS-561-helm-work

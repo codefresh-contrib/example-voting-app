@@ -1,0 +1,3 @@
+- CHART_NAME: example-voting-app
+  RELEASE_CANDIDATE: 1.0.1
+  TEST_IMAGE: aperturesci.jfrog.io/demo-docker/tests:amd64

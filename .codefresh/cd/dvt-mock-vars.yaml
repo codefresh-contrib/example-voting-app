@@ -1,0 +1,10 @@
+- CF_REPO_OWNER: aperture-sci
+  CF_REPO_NAME: example-voting-app
+  CF_REVISION: add-dvt-pipeline
+  CF_BRANCH_TAG_NORMALIZED: add-dvt-pipeline
+  KUBE_CONTEXT: kubecon-dev
+  RELEASE_NAME: eva-dev
+  NAMESPACE: eva-dev
+  BROWSERS: chrome
+  TESTING_SERVICES: result vote
+  TEST_IMAGE: aperturesci.jfrog.io/demo-docker/tests:amd64

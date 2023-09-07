@@ -1,0 +1,153 @@
+version: '1.0'
+stages:
+  - 'Clone Source Code Repo'
+  - 'Build Docker Images'
+  - 'Bump Chart Version'
+  - 'Update Chart Dependencies'
+  - 'Lint Chart'
+  - 'Package Chart'
+  - 'Push Chart'
+  - 'Clone Environments Repo'
+  - 'Deploy PR'
+  - 'Test PR'
+
+steps:
+
+  GITCloneSource:
+    title: Cloning Source Code GIT Repository...
+    type: git-clone
+    arguments:
+      repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+      revision: ${{CF_REVISION}}
+      git: github
+    stage: 'Clone Source Code Repo'
+
+  BuildDockerfiles:
+    title: Building Required Docker Images...
+    type: parallel
+    steps:
+      DockerBuildMicroservice:
+        title: Building Microservice Docker Image...
+        type: build
+        working_directory: ${{GITCloneSource}}/${{MICROSERVICE}}/
+        image_name: ${{MICROSERVICE}}
+        tag: pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        registry: aperture-sci
+      DockerBuildTests:
+        title: Building Tests Docker Image...
+        type: build
+        working_directory: ${{GITCloneSource}}/tests/
+        image_name: tests
+        tag: pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        registry: aperture-sci
+    stage: 'Build Docker Images'
+
+  HelmChartBumpVersions:
+    title: Bumping Helm Chart Versions...
+    image: codefresh/cfstep-helm
+    working_directory: ${{GITCloneSource}}
+    shell: bash
+    commands:
+      - export CURRENT_MICROSERVICE_CHART_VERSION=`yq .version ${{HELM_CHART_PATH}}/local-charts/${{MICROSERVICE}}/Chart.yaml`
+      - echo "Current ${{MICROSERVICE}} Chart Version - ${CURRENT_MICROSERVICE_CHART_VERSION}"
+      - cf_export NEW_MICROSERVICE_CHART_VERSION=`echo "${CURRENT_MICROSERVICE_CHART_VERSION}" | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
+      - curl -L "https://get.helm.sh/helm-v3.12.3-linux-amd64.tar.gz" -o helm.tar.gz && tar -zxvf helm.tar.gz && mv ./linux-amd64/helm /usr/local/bin/helm 
+      - helm repo add demo-helm https://aperturesci.jfrog.io/artifactory/api/helm/demo-helm --username aperture@codefresh.io --password cmVmdGtuOjAxOjE3MjM1ODQxMzQ6cEVJMFRVYVMxZVZqaFpKenBsVFhNNWxjb1Zu
+      - export CURRENT_CHART_VERSION=`helm search repo demo-helm/${{CHART_NAME}} | awk 'FNR==2{print $2}'`
+      - echo "New ${{CHART_NAME}} Chart Version - ${CURRENT_CHART_VERSION}"
+      - cf_export NEW_CHART_VERSION=`echo $CURRENT_CHART_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
+    stage: 'Bump Chart Version'
+  HelmChartWriteNewVersions:
+    title: Writing Helm Chart Versions...
+    image: mikefarah/yq:4.35.1
+    working_directory: ${{GITCloneSource}}
+    commands:
+      - export PR_MICROSERVICE_CHART_VERSION=${{NEW_MICROSERVICE_CHART_VERSION}}-pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_SHORT_REVISION}}
+      - yq e -i '.version=env(PR_MICROSERVICE_CHART_VERSION)' ${{HELM_CHART_PATH}}/local-charts/${{MICROSERVICE}}/Chart.yaml
+      - cat ${{HELM_CHART_PATH}}/local-charts/${{MICROSERVICE}}/Chart.yaml
+      - export IMAGE_TAG=pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+      - yq e -i '.image.tag=env(IMAGE_TAG)' ${{HELM_CHART_PATH}}/local-charts/${{MICROSERVICE}}/values.yaml
+      - cat ${{HELM_CHART_PATH}}/local-charts/${{MICROSERVICE}}/values.yaml
+      - yq e -i '(.dependencies[] | select(has("name")) | select(.name == env(MICROSERVICE))).version=env(PR_MICROSERVICE_CHART_VERSION)' ${{HELM_CHART_PATH}}/Chart.yaml 
+      - export PR_CHART_VERSION=${{NEW_CHART_VERSION}}-pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_SHORT_REVISION}}
+      - yq e -i '.version=env(PR_CHART_VERSION)' ${{HELM_CHART_PATH}}/Chart.yaml
+      - cat ${{HELM_CHART_PATH}}/Chart.yaml
+      - cf_export PR_CHART_VERSION=$PR_CHART_VERSION
+    stage: 'Bump Chart Version'
+
+  HelmChartDependencyUpdate:
+    title: Pulling Helm Chart Dependencies...
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITCloneSource}}/${{CF_REPO_NAME}}
+    commands:
+      - helm dep update 
+    stage: 'Update Chart Dependencies'
+
+  HelmChartLint:
+    title: Linting Helm Chart...
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITCloneSource}}/${{CF_REPO_NAME}}
+    commands:
+      - helm lint .
+    stage: 'Lint Chart'
+
+  HelmChartPackage:
+    title: Packaging Helm Chart..
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITCloneSource}}/${{CF_REPO_NAME}}
+    commands:
+      - helm package .
+    stage: 'Package Chart'
+
+  HelmChartPush:
+    title: Pushing Chart to Artifactory...
+    type: helm
+    arguments:
+      action: push
+      chart_name: /codefresh/volume/${{CF_REPO_NAME}}/${{CHART_NAME}}
+      helm_version: 3.9.0
+      helm_repository_context: aperture-sci-artifactory
+      credentials_in_arguments: true
+    stage: 'Push Chart'
+
+  GITCloneEnvironments:
+    title: Cloning Environments Repository...
+    type: git-clone
+    repo: 'aperture-sci/environments'
+    revision: 'main'
+    git: github
+    stage: 'Clone Environments Repo'
+  
+  DeployPR:
+    title: Deploying/Upgrading PR...
+    type: helm
+    arguments:
+      action: install
+      chart_name: /codefresh/volume/${{CF_REPO_NAME}}/${{CHART_NAME}}
+      release_name: eva-pr-${{CF_PULL_REQUEST_NUMBER}}
+      helm_version: 3.9.0
+      kube_context: kubecon-dev
+      namespace: eva-prs
+      skip_cf_stable_helm_repo: true
+      credentials_in_arguments: true
+      custom_value_files:
+        - /codefresh/volume/environments/eva/pullrequests/values.yaml
+    stage: 'Deploy PR'
+
+  RunDVTSOnPR:
+    title: Testing PR...
+    type: codefresh-run
+    arguments:
+      PIPELINE_ID: "Example Voting App/dvts"
+      TRIGGER_ID: dvts
+      BRANCH: main
+      ENABLE_NOTIFICATIONS: true
+      CONTEXT:
+        - github
+      VARIABLE:
+        - KUBE_CONTEXT=kubecon-dev
+        - RELEASE_NAME=eva-pr-${{CF_PULL_REQUEST_NUMBER}}
+        - NAMESPACE=eva-prs
+        - TEST_IMAGE=aperturesci.jfrog.io/demo-docker/tests:pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+        - CF_REVISION=${{CF_REVISION}}
+    stage: 'Test PR'

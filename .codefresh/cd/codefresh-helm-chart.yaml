@@ -1,0 +1,126 @@
+version: '1.0'
+stages:
+  - 'Clone Chart Repo'
+  - 'Idenfity Release Candidate'
+  - 'Bump Chart Version'
+  - 'Update Chart Dependencies'
+  - 'Lint Chart'
+  - 'Package Chart'
+  - 'Push Chart'
+  - 'Promote Release Candidate'
+  - 'Deploy Release Candidate'
+
+steps:
+  GITClone:
+    title: Cloning main repository...
+    type: git-clone
+    repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+    revision: main
+    git: github
+    stage: 'Clone Chart Repo'
+
+  IdentifyReleaseCandidate:
+    title: Identifying Release Candidate Details...
+    image: alpine
+    commands:
+      - cf_export RELEASE_CANDIDATE_SERVICE=${{MICROSERVICE}}
+      - cf_export RELEASE_CANDIDATE_IMAGE_TAG=pr-${{CF_PULL_REQUEST_NUMBER}}-${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}
+    stage: 'Idenfity Release Candidate'
+  
+  HelmChartBumpVersions:
+    title: Bumping Helm Chart Versions...
+    image: codefresh/cfstep-helm
+    working_directory: ${{GITClone}}
+    shell: bash
+    commands:
+      - export CURRENT_MICROSERVICE_CHART_VERSION=`yq .version ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/Chart.yaml`
+      - echo "Current ${{RELEASE_CANDIDATE_SERVICE}} Chart Version - ${CURRENT_MICROSERVICE_CHART_VERSION}"
+      - cf_export NEW_MICROSERVICE_CHART_VERSION=`echo "${CURRENT_MICROSERVICE_CHART_VERSION}" | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
+      - curl -L "https://get.helm.sh/helm-v3.12.3-linux-amd64.tar.gz" -o helm.tar.gz && tar -zxvf helm.tar.gz && mv ./linux-amd64/helm /usr/local/bin/helm 
+      - helm repo add demo-helm https://aperturesci.jfrog.io/artifactory/api/helm/demo-helm --username aperture@codefresh.io --password cmVmdGtuOjAxOjE3MjM1ODQxMzQ6cEVJMFRVYVMxZVZqaFpKenBsVFhNNWxjb1Zu
+      - export CURRENT_CHART_VERSION=`helm search repo demo-helm/${{CHART_NAME}} | awk 'FNR==2{print $2}'`
+      - echo "New ${{CHART_NAME}} Chart Version - ${CURRENT_CHART_VERSION}"
+      - cf_export NEW_CHART_VERSION=`echo $CURRENT_CHART_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
+    stage: 'Bump Chart Version'
+  
+  HelmChartWriteNewVersions:
+    title: Writing Helm Chart Versions...
+    image: mikefarah/yq:4.35.1
+    working_directory: ${{GITClone}}
+    commands:
+      - yq e -i '.version=strenv(NEW_MICROSERVICE_CHART_VERSION)' ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/Chart.yaml
+      - cat ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/Chart.yaml
+      - yq e -i '.image.tag=env(RELEASE_CANDIDATE_IMAGE_TAG)' ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/values.yaml
+      - cat ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/values.yaml
+      - yq e -i '(.dependencies[] | select(has("name")) | select(.name == env(RELEASE_CANDIDATE_SERVICE))).version=strenv(NEW_MICROSERVICE_CHART_VERSION)' ${{HELM_CHART_PATH}}/Chart.yaml 
+      - yq e -i '.version=strenv(NEW_CHART_VERSION)' ${{HELM_CHART_PATH}}/Chart.yaml
+      - cat ${{HELM_CHART_PATH}}/Chart.yaml
+    stage: 'Bump Chart Version'
+
+  HelmChartDependencyUpdate:
+    title: Pulling Helm Chart Dependencies...
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITClone}}/${{CF_REPO_NAME}}
+    commands:
+      - helm dep update 
+    stage: 'Update Chart Dependencies'
+
+  HelmChartLint:
+    title: Linting Helm Chart...
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITClone}}/${{CF_REPO_NAME}}
+    commands:
+      - helm lint .
+    stage: 'Lint Chart'
+
+  HelmChartPackage:
+    title: Packaging Helm Chart...
+    image: alpine/helm:3.9.4
+    working_directory: ${{GITClone}}/${{CF_REPO_NAME}}
+    commands:
+      - helm package .
+    stage: 'Package Chart'
+
+  HelmChartPush:
+    title: Pushing Chart to Artifactory...
+    type: helm
+    arguments:
+      action: push
+      chart_name: /codefresh/volume/${{CF_REPO_NAME}}/${{CHART_NAME}}
+      helm_version: 3.9.0
+      helm_repository_context: aperture-sci-artifactory
+      credentials_in_arguments: true
+    stage: 'Push Chart'
+
+  CommitHelmCandidate:
+    title: Committing Chart Changes...
+    type: git-commit
+    arguments:
+      repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+      git: github
+      working_directory: '/codefresh/volume/${{CF_REPO_NAME}}'
+      commit_message: Committed Promotion Candidate ${{RELEASE_CANDIDATE_IMAGE_TAG}} to ${{HELM_CHART_PATH}}
+      git_user_name: aperture-frresh
+      git_user_email: aperture@codefresh.io
+      add:
+        - ${{HELM_CHART_PATH}}/Chart.yaml
+        - ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/Chart.yaml
+        - ${{HELM_CHART_PATH}}/local-charts/${{RELEASE_CANDIDATE_SERVICE}}/values.yaml
+    stage: 'Promote Release Candidate'
+
+  DeployReleaseCandidate:
+    title: Deploying Release Candidate...
+    type: codefresh-run
+    arguments:
+      PIPELINE_ID: "Example Voting App/cd-promotion"
+      TRIGGER_ID: eva
+      BRANCH: main
+      ENABLE_NOTIFICATIONS: true
+      DETACH: true
+      CONTEXT:
+        - github
+      VARIABLE:
+        - RELEASE_CANDIDATE=${{NEW_CHART_VERSION}}
+        - RELEASE_CANDIDATE_SERVICE=${{RELEASE_CANDIDATE_SERVICE}}
+        - RELEASE_CANDIDATE_IMAGE_TAG=${{RELEASE_CANDIDATE_IMAGE_TAG}}
+    stage: 'Deploy Release Candidate'
