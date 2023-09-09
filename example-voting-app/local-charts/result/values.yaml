@@ -3,6 +3,6 @@
 # Declare name/value pairs to be passed into your templates.
 # name: value
 image:
-  repository: aperturesci.jfrog.io/demo-docker/result
-  tag: pr-16-update-result-10-a10c3fe
+  repository: quay.io/codefresh-contrib/result
+  tag: stable
 replicaCount: 1

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: example-voting-app
+spec:
+  project: default
+  sources:
+  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
+    targetRevision: HEAD
+    path: example-voting-app
+  destination:
+    namespace: example-voting-app
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - Validate=false
+    - CreateNamespace=true
+
