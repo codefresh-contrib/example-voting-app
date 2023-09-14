@@ -1,0 +1,12 @@
+result:
+  image:
+    repository: quay.io/codefresh-contrib/result
+    tag: stable
+vote:
+  image:
+    repository: quay.io/codefresh-contrib/vote
+    tag: stable
+worker:
+  image:
+    repository: quay.io/codefresh-contrib/worker
+    tag: stable
