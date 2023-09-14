@@ -6,16 +6,13 @@ metadata:
     codefresh.io/product: example-voting-app
 spec:
   project: default
-  sources:
-  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
+  source:
+    repoURL: https://github.com/codefresh-contrib/example-voting-app.git
     targetRevision: HEAD
     path: example-voting-app
     helm:
       valueFiles:
-        - $environments/helm/environments/development/values.yaml
-  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
-    targetRevision: main
-    ref: environments
+        - environments/staging/values.yaml
   destination:
     namespace: staging
     server: https://kubernetes.default.svc
