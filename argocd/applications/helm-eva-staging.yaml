@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: eva-staging
+  annotations:
+    codefresh.io/product: example-voting-app
+spec:
+  project: default
+  sources:
+  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
+    targetRevision: HEAD
+    path: example-voting-app
+    helm:
+      valueFiles:
+        - $environments/helm/environments/development/values.yaml
+  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
+    targetRevision: main
+    ref: environments
+  destination:
+    namespace: staging
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - Validate=false
+    - CreateNamespace=true

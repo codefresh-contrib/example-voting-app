@@ -1,15 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: example-voting-app
+  name: eva-production
+  annotations:
+    codefresh.io/product: example-voting-app
 spec:
   project: default
   sources:
   - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
     targetRevision: HEAD
     path: example-voting-app
+    helm:
+      valueFiles:
+        - $environments/helm/environments/development/values.yaml
+  - repoURL: https://github.com/codefresh-contrib/example-voting-app.git
+    targetRevision: main
+    ref: environments
   destination:
-    namespace: example-voting-app
+    namespace: production
     server: https://kubernetes.default.svc
   syncPolicy:
     automated:
@@ -19,4 +27,3 @@ spec:
     syncOptions:
     - Validate=false
     - CreateNamespace=true
-
