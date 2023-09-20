@@ -1,0 +1,148 @@
+version: '1.0'
+
+stages:
+  - 'Clone Source Code Repo'
+  - 'Build Docker Images'
+  - 'Writing Initial Versions'
+  - 'Committing Initial Versions'
+  - 'Mock GitHub Pull Request'
+  - 'Report Image Details'
+
+steps:
+
+  GITClone:
+    title: Cloning GIT Repository...
+    type: git-clone
+    repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+    revision: main
+    stage: 'Clone Source Code Repo'
+
+  BuildDockerImages:
+    title: Building Docker Image...
+    type: build
+    tags: 
+      - stable
+    scale:
+      BuildTests:
+        working_directory: ${{GITClone}}/tests/
+        image_name: example-voting-app/tests
+      BuildResult:
+        working_directory: ${{GITClone}}/result/
+        image_name: example-voting-app/result
+      BuildVote:
+        working_directory: ${{GITClone}}/vote/
+        image_name: example-voting-app/vote
+      BuildWorker:
+        working_directory: ${{GITClone}}/worker/
+        image_name: example-voting-app/worker
+    stage: 'Build Docker Images'
+
+
+  #TODO: Get GIT token from GIT integration
+
+  CheckoutGITBranch:
+    title: Creating Initialization Branch...
+    image: 'alpine/git:latest'
+    working_directory: ${{GITClone}}
+    commands:
+      - git branch -D codefresh-demo-app-initialization || echo "$?"
+      - git checkout -b codefresh-demo-app-initialization
+    stage: Writing Initial Versions
+
+  WriteVersionsToValuesFiles:
+    title: Writing Updates to Environment Values Files...
+    type: freestyle
+    image: mikefarah/yq:4
+    commands:
+      - echo "Making Modifications for $TARGET_SERVICE"
+      - echo "Before Changes"
+      - cat values.yaml
+      - echo "Modifying Docker Registry to $DOCKER_REGISTRY"
+      - pathEnv=".result.image.repository" DOCKER_REGISTRY="$RESULT_DOCKER_REGISTRY" yq -i 'eval(strenv(pathEnv))=env(DOCKER_REGISTRY)' values.yaml
+      - pathEnv=".vote.image.repository" DOCKER_REGISTRY="$VOTE_DOCKER_REGISTRY" yq -i 'eval(strenv(pathEnv))=env(DOCKER_REGISTRY)' values.yaml
+      - pathEnv=".worker.image.repository" DOCKER_REGISTRY="$WORKER_DOCKER_REGISTRY" yq -i 'eval(strenv(pathEnv))=env(DOCKER_REGISTRY)' values.yaml
+      - echo "After Changes"
+      - cat values.yaml
+    matrix:
+      working_directory:
+        - ${{CheckoutGITBranch}}/example-voting-app/environments/development
+        - ${{CheckoutGITBranch}}/example-voting-app/environments/staging
+        - ${{CheckoutGITBranch}}/example-voting-app/environments/production
+    stage: Writing Initial Versions
+
+  CommitValuesFiles:
+    title: Committing Valuesfiles to GIT Repository...
+    type: git-commit
+    arguments:
+      repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+      git: ${{CF_REPO_OWNER}}
+      base_branch: codefresh-demo-app-initialization
+      working_directory: '/codefresh/volume/${{CF_REPO_NAME}}'
+      commit_message: Committed Initial Images
+      allow_empty: true
+      git_user_name: Codefresh_Automation
+      git_user_email: automation@codefresh.io
+      add:
+        - example-voting-app/environments/development/values.yaml
+        - example-voting-app/environments/staging/values.yaml
+        - example-voting-app/environments/production/values.yaml
+    stage: Committing Initial Versions
+
+  GetGITToken:
+    title: Reading GitHub Token
+    image: codefresh/cli
+    commands:
+      - cf_export GITHUB_TOKEN=$(codefresh get context ${{CF_REPO_OWNER}} --decrypt -o yaml | yq -y .spec.data.auth.password)
+    stage: Mock GitHub Pull Request
+
+  #TODO: Create Pull Request
+
+  CreatePullRequest:
+    title: Creating GitHub Pull Request...
+    type: github-pr
+    arguments:
+      GITHUB_TOKEN: ${{GITHUB_TOKEN}}
+      GITHUB_REPO_OWNER: ${{CF_REPO_OWNER}}
+      GITHUB_REPO_NAME: ${{CF_REPO_NAME}}
+      HEAD: codefresh-demo-app-initialization
+      TITLE: Codefresh PR for Initialization
+      BASE: main
+      GITHUB_PR_NUMBER: '1'
+    stage: Mock GitHub Pull Request
+
+  #TODO: Merge Pull Request
+
+  merge_github_pr:
+    title: Merging GitHub Pull Request...
+    type: github-pr
+    arguments:
+      GITHUB_TOKEN: ${{GITHUB_TOKEN}}
+      GITHUB_REPO_OWNER: ${{CF_REPO_OWNER}}
+      GITHUB_REPO_NAME: ${{CF_REPO_NAME}}
+      GITHUB_PR_NUMBER: '1'
+      GITHUB_PR_OPERATION: merge
+    stage: Mock GitHub Pull Request
+
+  #TODO: Enrich Image
+
+  ReportImageMetadataAll:
+    title: Reporting Image to Codefresh...
+    type: codefresh-report-image
+    working_directory: /code
+    arguments:
+      CF_API_KEY: ${{CF_API_KEY}}
+      CF_CONTAINER_REGISTRY_INTEGRATION: ${{CF_REPO_OWNER}}
+      CF_RUNTIME_NAME: ${{GITOPS_RUNTIME_NAME}}
+      CF_GITHUB_TOKEN: ${{GITHUB_TOKEN}}
+      CF_GIT_PROVIDER: github
+      CF_GIT_REPO: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+      CF_GIT_BRANCH: codefresh-demo-app-initialization
+      CF_ISSUE_TRACKING_INTEGRATION: cf-demo-jira
+      CF_JIRA_MESSAGE: Committed Initial Images
+      CF_JIRA_PROJECT_PREFIX: SDD
+    matrix:
+      arguments:
+          - {"CF_IMAGE": "${{RESULT_DOCKER_REGISTRY}}:stable"}
+          - {"CF_IMAGE": "${{VOTE_DOCKER_REGISTRY}}:stable"}
+          - {"CF_IMAGE": "${{WORKER_DOCKER_REGISTRY}}:stable"}
+    stage: Report Image Details
