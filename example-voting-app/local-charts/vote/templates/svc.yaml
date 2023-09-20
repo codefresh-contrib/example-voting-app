@@ -11,7 +11,8 @@ metadata:
     heritage: {{ .Release.Service  | quote }}
     version: {{ .Values.image.tag | quote }}
 spec:
-  type: ClusterIP 
+  type: ClusterIP
+  clusterIP: None
   ports:
     - port: 80
       targetPort: 80
