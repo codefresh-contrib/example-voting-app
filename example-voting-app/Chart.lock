@@ -15,4 +15,4 @@ dependencies:
   repository: file://local-charts/worker
   version: 1.0.3
 digest: sha256:cbcb084dca568c05aeb218c18ada07ee051c6b7ecb96dbbe55675880f2c5eef7
-generated: "2023-09-08T20:21:35.690027-07:00"
+generated: "2023-09-20T16:33:52.798507-07:00"
