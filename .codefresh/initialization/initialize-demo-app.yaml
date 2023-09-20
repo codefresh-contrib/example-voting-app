@@ -25,16 +25,16 @@ steps:
     scale:
       BuildTests:
         working_directory: ${{GITClone}}/tests/
-        image_name: example-voting-app/tests
+        image_name: ${{GITOPS_RUNTIME_NAME}}/tests
       BuildResult:
         working_directory: ${{GITClone}}/result/
-        image_name: example-voting-app/result
+        image_name: ${{GITOPS_RUNTIME_NAME}}/result
       BuildVote:
         working_directory: ${{GITClone}}/vote/
-        image_name: example-voting-app/vote
+        image_name: ${{GITOPS_RUNTIME_NAME}}/vote
       BuildWorker:
         working_directory: ${{GITClone}}/worker/
-        image_name: example-voting-app/worker
+        image_name: ${{GITOPS_RUNTIME_NAME}}/worker
     stage: 'Build Docker Images'
 
 
@@ -107,7 +107,6 @@ steps:
       HEAD: codefresh-demo-app-initialization
       TITLE: Codefresh PR for Initialization
       BASE: main
-      GITHUB_PR_NUMBER: '1'
     stage: Mock GitHub Pull Request
 
   #TODO: Merge Pull Request
