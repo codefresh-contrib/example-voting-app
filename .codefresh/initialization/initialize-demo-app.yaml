@@ -130,7 +130,7 @@ steps:
     working_directory: /code
     arguments:
       CF_API_KEY: ${{CF_API_KEY}}
-      CF_CONTAINER_REGISTRY_INTEGRATION: ${{GITOPS_RUNTIME_NAME}}
+      CF_CONTAINER_REGISTRY_INTEGRATION: ${{CF_REPO_OWNER}}
       CF_RUNTIME_NAME: ${{GITOPS_RUNTIME_NAME}}
       CF_GITHUB_TOKEN: ${{GITHUB_TOKEN}}
       CF_GIT_PROVIDER: github
