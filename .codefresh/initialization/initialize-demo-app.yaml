@@ -45,8 +45,8 @@ steps:
     image: 'alpine/git:latest'
     working_directory: ${{GITClone}}
     commands:
-      - git branch -D codefresh-demo-app-initialization || echo "$?"
-      - git checkout -b codefresh-demo-app-initialization
+      - git branch -D SSD-1-codefresh-demo-app-initialization || echo "$?"
+      - git checkout -b SSD-1codefresh-demo-app-initialization
     stage: Writing Initial Versions
 
   WriteVersionsToValuesFiles:
@@ -76,7 +76,7 @@ steps:
     arguments:
       repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
       git: ${{CF_REPO_OWNER}}
-      base_branch: codefresh-demo-app-initialization
+      base_branch: SSD-1codefresh-demo-app-initialization
       working_directory: '/codefresh/volume/${{CF_REPO_NAME}}'
       commit_message: Committed Initial Images
       allow_empty: true
@@ -135,7 +135,7 @@ steps:
       CF_GITHUB_TOKEN: ${{GITHUB_TOKEN}}
       CF_GIT_PROVIDER: github
       CF_GIT_REPO: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
-      CF_GIT_BRANCH: codefresh-demo-app-initialization
+      CF_GIT_BRANCH: SSD-1-codefresh-demo-app-initialization
       CF_ISSUE_TRACKING_INTEGRATION: cf-demo-jira
       CF_JIRA_MESSAGE: Committed Initial Images
       CF_JIRA_PROJECT_PREFIX: SDD
