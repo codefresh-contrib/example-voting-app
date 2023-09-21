@@ -46,7 +46,7 @@ steps:
     working_directory: ${{GITClone}}
     commands:
       - git branch -D SSD-1-codefresh-demo-app-initialization || echo "$?"
-      - git checkout -b SSD-1codefresh-demo-app-initialization
+      - git checkout -b SSD-1-codefresh-demo-app-initialization
     stage: Writing Initial Versions
 
   WriteVersionsToValuesFiles:
@@ -104,7 +104,7 @@ steps:
       GITHUB_TOKEN: ${{GITHUB_TOKEN}}
       GITHUB_REPO_OWNER: ${{CF_REPO_OWNER}}
       GITHUB_REPO_NAME: ${{CF_REPO_NAME}}
-      HEAD: codefresh-demo-app-initialization
+      HEAD: SSD-1-codefresh-demo-app-initialization
       TITLE: Codefresh PR for Initialization
       BASE: main
     stage: Mock GitHub Pull Request
