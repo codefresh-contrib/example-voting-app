@@ -76,7 +76,7 @@ steps:
     arguments:
       repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
       git: ${{CF_REPO_OWNER}}
-      base_branch: SSD-1codefresh-demo-app-initialization
+      base_branch: SSD-1-codefresh-demo-app-initialization
       working_directory: '/codefresh/volume/${{CF_REPO_NAME}}'
       commit_message: Committed Initial Images
       allow_empty: true
