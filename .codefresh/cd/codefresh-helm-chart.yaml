@@ -37,7 +37,7 @@ steps:
       - echo "Current ${{RELEASE_CANDIDATE_SERVICE}} Chart Version - ${CURRENT_MICROSERVICE_CHART_VERSION}"
       - cf_export NEW_MICROSERVICE_CHART_VERSION=`echo "${CURRENT_MICROSERVICE_CHART_VERSION}" | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
       - curl -L "https://get.helm.sh/helm-v3.12.3-linux-amd64.tar.gz" -o helm.tar.gz && tar -zxvf helm.tar.gz && mv ./linux-amd64/helm /usr/local/bin/helm 
-      - helm repo add demo-helm https://aperturesci.jfrog.io/artifactory/api/helm/demo-helm --username aperture@codefresh.io --password cmVmdGtuOjAxOjE3MjM1ODQxMzQ6cEVJMFRVYVMxZVZqaFpKenBsVFhNNWxjb1Zu
+      - helm repo add demo-helm https://aperturesci.jfrog.io/artifactory/api/helm/demo-helm --username aperture@codefresh.io --password ....
       - export CURRENT_CHART_VERSION=`helm search repo demo-helm/${{CHART_NAME}} | awk 'FNR==2{print $2}'`
       - echo "New ${{CHART_NAME}} Chart Version - ${CURRENT_CHART_VERSION}"
       - cf_export NEW_CHART_VERSION=`echo $CURRENT_CHART_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g' | tr -d '"'`
