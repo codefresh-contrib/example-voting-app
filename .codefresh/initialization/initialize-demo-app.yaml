@@ -70,6 +70,14 @@ steps:
         - ${{CheckoutGITBranch}}/example-voting-app/environments/production
     stage: Writing Initial Versions
 
+  CheckForChanges:
+    title: Check for GIT Diff
+    image: quay.io/codefresh-contrib/alpine/git:latest
+    working_directory: ${{CheckoutGITBranch}}
+    commands:
+      - git diff --exit-code || cf_export CHANGED_FILES_FOUND=true;
+    stage: Committing Initial Versions
+
   CommitValuesFiles:
     title: Committing Valuesfiles to GIT Repository...
     type: git-commit
@@ -87,6 +95,10 @@ steps:
         - example-voting-app/environments/staging/values.yaml
         - example-voting-app/environments/production/values.yaml
     stage: Committing Initial Versions
+    when:
+      condition:
+        all:
+          whenUntrackedFilesFound: '"${{CHANGED_FILES_FOUND}}" == "true"'
 
   GetGITToken:
     title: Reading GitHub Token
