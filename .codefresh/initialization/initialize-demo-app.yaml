@@ -83,7 +83,7 @@ steps:
     type: git-commit
     arguments:
       repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
-      git: ${{CF_REPO_OWNER}}
+      git: ${{GITOPS_RUNTIME_NAME}}
       base_branch: SDD-1-codefresh-demo-app-initialization
       working_directory: '/codefresh/volume/${{CF_REPO_NAME}}'
       commit_message: Committed Initial Images
@@ -104,7 +104,7 @@ steps:
     title: Reading GitHub Token
     image: codefresh/cli
     commands:
-      - cf_export GITHUB_TOKEN=$(codefresh get context ${{CF_REPO_OWNER}} --decrypt -o yaml | yq -y .spec.data.auth.password)
+      - cf_export GITHUB_TOKEN=$(codefresh get context ${{GITOPS_RUNTIME_NAME}} --decrypt -o yaml | yq -y .spec.data.auth.password)
     stage: Mock GitHub Pull Request
 
   #TODO: Create Pull Request
